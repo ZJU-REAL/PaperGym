@@ -2,7 +2,6 @@
 
 # PaperGym: Rubric-Centered Framework for Research-Plan Generation
 
-[![Paper](https://img.shields.io/badge/Paper-Preprint_PDF-b31b1b.svg)](https://zju-real.github.io/PaperGym/paper.pdf)
 [![Project Page](https://img.shields.io/badge/Project-Page-2f6f9f.svg)](https://zju-real.github.io/PaperGym)
 [![Model](https://img.shields.io/badge/Model-HuggingFace-FFD21E.svg)](https://huggingface.co/CabbageWyh/PaperGym-Model)
 [![Dataset](https://img.shields.io/badge/Dataset-HuggingFace-yellow.svg)](https://huggingface.co/datasets/CabbageWyh/PaperGym-Data)
@@ -27,7 +26,7 @@ Because the question and the criteria come from **disjoint sections** of the pap
 The rubrics are then used **twice** during training: first as privileged context for a rubric-conditioned self-distillation teacher, then as the reward for GRPO — a *teach–explore* paradigm.
 
 <p align="center">
-  <img src="assets/framework.png" width="880" alt="PaperGym framework">
+  <img src="docs/images/framework.png" width="880" alt="PaperGym framework">
 </p>
 
 ## ✨ Highlights
@@ -85,7 +84,7 @@ Both training stages are supervised by the same rubrics.
 | ResearchPlanGen-ML | 31.29% |
 | ResearchPlanGen-ArXiv | 34.10% |
 
-See the [paper](https://zju-real.github.io/PaperGym/paper.pdf) for complete experiments, ablations, and analysis.
+See the [project page](https://zju-real.github.io/PaperGym) for the paper and complete experiments, ablations, and analysis.
 
 ## 📦 Released Resources
 
@@ -111,6 +110,9 @@ PaperGym/
 │   ├── reward_fn/            #   offline rubric scoring functions
 │   ├── scripts/              #   training launch script
 │   └── data/                 #   train / val sets (Parquet)
+├── docs/                     # Project page (deploy via GitHub Pages)
+│   ├── index.html            #   project homepage
+│   └── images/               #   page figures
 └── test/                     # Evaluation & analysis
     ├── PaperGym/             #   in-domain Innov / Design evaluation
     ├── ResearchQA/ · ResearchPlanGen/ · RubricHub/   # external benchmarks

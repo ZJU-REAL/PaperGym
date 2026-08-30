@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PaperGym: Building Open Scientific Researchers</title>
+<meta name="description" content="PaperGym is a low-leakage benchmark for research-plan generation, built with a four-stage knowledge-extraction pipeline and dual-dimension instance-specific rubrics, validated through rubric-conditioned OPSD + GRPO training.">
+<meta property="og:title" content="PaperGym: Building Open Scientific Researchers">
+<meta property="og:description" content="A low-leakage benchmark for research-plan generation with knowledge extraction and dual-dimension rubric synthesis.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://zju-real.github.io/PaperGym/">
+<meta property="og:image" content="https://zju-real.github.io/PaperGym/images/framework.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231f6ed8'/%3E%3Cstop offset='1' stop-color='%231556ab'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M24 14h16M28 14v9l-10.5 16.5A5 5 0 0 0 21.9 47h20.2a5 5 0 0 0 4.4-7.5L36 23v-9' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M25 32h14M28 38h8M30 44h4' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --text: #232323;
+    --muted: #666666;
+    --line: #e3e7e6;
+    --accent: #1f6ed8;
+    --accent-dark: #1556ab;
+    --tint: #f2f7fd;
+    --tint-line: rgba(31, 110, 216, 0.18);
+    --shadow: 0 18px 46px rgba(18, 52, 105, 0.08);
+    --shadow-soft: 0 12px 30px rgba(18, 52, 105, 0.05);
+    --sans: "Google Sans", "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+    --serif: "Castoro", Georgia, "Times New Roman", "Noto Serif SC", "Songti SC", serif;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    color: var(--text);
+    background: #ffffff;
+    font-family: var(--sans);
+    line-height: 1.65;
+    overflow-x: hidden;
+  }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { color: var(--accent-dark); }
+  img { display: block; max-width: 100%; }
+
+  .container { width: min(1000px, calc(100% - 40px)); margin: 0 auto; }
+  .container.narrow { width: min(850px, calc(100% - 40px)); }
+  .center { text-align: center; }
+
+  /* ---------------- Hero ---------------- */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding: 64px 0 30px;
+    background: #ffffff;
+  }
+  .hero .container { position: relative; z-index: 1; }
+
+  .hero-logo {
+    width: auto;
+    max-width: min(120px, 60vw);
+    margin: 0 auto 18px;
+    animation: heroLift 720ms ease both;
+  }
+
+  h1, h2 {
+    font-family: var(--serif);
+    font-weight: 700;
+    line-height: 1.14;
+    letter-spacing: 0;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 46px;
+    animation: heroLift 780ms ease 90ms both;
+  }
+
+  h2 {
+    margin: 0 0 24px;
+    text-align: center;
+    font-size: 34px;
+  }
+
+  .subtitle {
+    margin: 10px auto 22px;
+    color: #333333;
+    font-size: 23px;
+    line-height: 1.4;
+    animation: heroLift 820ms ease 150ms both;
+  }
+
+  .g-mark {
+    text-decoration-line: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 0.1em;
+    text-underline-offset: 0.14em;
+  }
+
+  .authors {
+    max-width: 920px;
+    margin: 0 auto;
+    color: #333333;
+    font-size: 18px;
+    line-height: 1.6;
+    animation: heroLift 860ms ease 220ms both;
+  }
+
+  .affiliations { margin: 10px 0 0; color: #555555; font-size: 17px; }
+  .note { margin: 4px 0 0; color: #777777; font-size: 14px; }
+  .venue { margin: 12px 0 0; color: #777777; font-size: 15px; letter-spacing: 0.06em; }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 28px;
+    animation: heroLift 900ms ease 300ms both;
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 42px;
+    padding: 0 18px 0 13px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(48, 48, 48, 0.98), rgba(31, 31, 31, 0.98));
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  }
+  .button:hover {
+    border-color: rgba(31, 110, 216, 0.32);
+    background: linear-gradient(180deg, rgba(31, 110, 216, 0.98), rgba(21, 86, 171, 0.98));
+    color: #ffffff;
+    box-shadow: 0 13px 26px rgba(21, 86, 171, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    transform: translateY(-2px);
+  }
+  .button-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 24px;
+    padding: 0 7px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.13);
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .button-icon-hf { font-size: 17px; }
+
+  /* ---------------- Sections ---------------- */
+  .section {
+    position: relative;
+    padding: 60px 0;
+  }
+  .section.tint { background: var(--tint); border-top: 1px solid var(--tint-line); }
+  .section.compact { padding-top: 20px; }
+
+  .section-lead {
+    margin: 0 auto 34px;
+    max-width: 780px;
+    color: #4a4a4a;
+    font-size: 17px;
+    text-align: center;
+  }
+
+  /* figure blocks */
+  .figure-block { margin: 0 auto 26px; text-align: center; }
+  .figure-block img {
+    width: min(860px, 100%);
+    margin: 0 auto;
+    padding: 10px;
+    border: 1px solid rgba(31, 110, 216, 0.18);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: var(--shadow-soft);
+    transition: border-color 180ms ease, box-shadow 180ms ease, filter 180ms ease, transform 180ms ease;
+  }
+  .figure-block img:hover {
+    border-color: rgba(31, 110, 216, 0.3);
+    box-shadow: var(--shadow);
+    filter: saturate(1.03);
+    transform: translateY(-2px);
+  }
+  .figure-block.wide img { width: min(980px, 100%); }
+
+  .caption {
+    max-width: 820px;
+    margin: 14px auto 0;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.55;
+    text-align: center;
+  }
+
+  .content { color: #222222; font-size: 17px; text-align: justify; }
+  .content p { margin: 0 0 16px; }
+
+  /* ---------------- Highlights ---------------- */
+  .highlights { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+
+  .highlight-card {
+    min-height: 168px;
+    padding: 26px 20px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: var(--shadow-soft);
+    text-align: center;
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  }
+  .highlight-card:hover {
+    border-color: rgba(31, 110, 216, 0.26);
+    box-shadow: var(--shadow);
+    transform: translateY(-3px);
+  }
+  .highlight-number {
+    margin-bottom: 10px;
+    color: var(--accent-dark);
+    font-family: var(--serif);
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1.05;
+  }
+  .highlight-text { color: #4a4a4a; font-size: 15px; line-height: 1.5; }
+
+  /* ---------------- Numbered method steps ---------------- */
+  .method-steps ol {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+    counter-reset: method-step;
+  }
+  .method-steps li {
+    position: relative;
+    min-height: 136px;
+    margin: 0;
+    padding: 22px 20px 22px 66px;
+    border: 1px solid #dde6f2;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.85);
+    color: #4d5552;
+    font-size: 15px;
+    line-height: 1.55;
+    list-style: none;
+    text-align: left;
+    counter-increment: method-step;
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  }
+  .method-steps li:hover {
+    border-color: rgba(31, 110, 216, 0.28);
+    box-shadow: var(--shadow-soft);
+    transform: translateY(-2px);
+  }
+  .method-steps li::before {
+    position: absolute;
+    top: 22px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #ffffff;
+    content: counter(method-step);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .method-steps strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #202725;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.4;
+  }
+  .method-steps strong b { color: var(--accent-dark); }
+
+  /* ---------------- Training stage cards ---------------- */
+  .stages { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 6px; }
+  .stage {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: var(--shadow-soft);
+    padding: 26px 26px 22px;
+  }
+  .stage h3 {
+    margin: 0 0 6px;
+    font-family: var(--serif);
+    font-size: 21px;
+    font-weight: 700;
+    color: #202725;
+  }
+  .stage .stag {
+    display: inline-block;
+    margin-bottom: 12px;
+    padding: 3px 12px;
+    border-radius: 999px;
+    background: rgba(31, 110, 216, 0.1);
+    color: var(--accent-dark);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .stage p { margin: 0 0 12px; color: #4a4a4a; font-size: 15px; line-height: 1.6; }
+  .stage .eq {
+    margin: 12px 0;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: #f4f8fd;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 13.5px;
+    text-align: center;
+    color: #202725;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .stage .eq-note { font-size: 13px; color: var(--muted); line-height: 1.55; margin-top: 10px; }
+
+  .impl {
+    margin-top: 20px;
+    padding: 16px 20px;
+    border: 1px dashed rgba(31, 110, 216, 0.35);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.6);
+    color: #4d5552;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .impl b { color: #202725; }
+
+  /* ---------------- Dataset / info boxes ---------------- */
+  .info-box {
+    margin: 18px 0 0;
+    padding: 18px 22px;
+    border: 1px solid rgba(31, 110, 216, 0.16);
+    border-left: 4px solid var(--accent);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.82);
+    color: #4a4a4a;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .info-box b { color: #202725; }
+
+  /* ---------------- Tables ---------------- */
+  .table-card {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: var(--shadow-soft);
+    overflow-x: auto;
+  }
+  .table-card.narrow { max-width: 640px; margin: 0 auto; }
+  table.data { border-collapse: collapse; width: 100%; font-size: 0.87rem; min-width: 760px; }
+  .table-card.narrow table.data { min-width: 0; }
+  table.data th, table.data td { padding: 9px 12px; text-align: center; border-bottom: 1px solid var(--line); }
+  table.data thead th {
+    background: #eef4fb;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #4d5552;
+  }
+  table.data td:first-child { text-align: left; font-weight: 600; color: #202725; }
+  table.data tbody tr:hover td { background: #f7fbfe; }
+  table.data tr.group td {
+    background: #eef4fb;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  table.data tr.group td:first-child { font-weight: 700; }
+  table.data .best { color: var(--accent-dark); font-weight: 800; }
+  table.data tr.pipeline td { background: rgba(31, 110, 216, 0.07); }
+  table.data tr.pipeline td:first-child { font-weight: 700; }
+  table.data tbody tr:last-child td { border-bottom: none; }
+  .table-note { margin-top: 12px; color: var(--muted); font-size: 13.5px; line-height: 1.55; text-align: center; }
+
+  /* ---------------- Win-rate carousel ---------------- */
+  .carousel-block { margin-top: 8px; }
+  .analysis-carousel {
+    position: relative;
+    width: min(880px, 100%);
+    margin: 0 auto;
+    padding: 0 58px;
+  }
+  .carousel-viewport { overflow: hidden; }
+  .carousel-track { display: flex; transform: translateX(0); transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1); will-change: transform; }
+  .carousel-slide {
+    flex: 0 0 100%;
+    margin: 0;
+    opacity: 0.35;
+    text-align: center;
+    transform: scale(0.985);
+    transition: opacity 260ms ease, transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .carousel-slide.is-active { opacity: 1; transform: scale(1); }
+  .carousel-slide img {
+    width: min(560px, 88%);
+    margin: 0 auto;
+    padding: 8px;
+    border: 1px solid rgba(31, 110, 216, 0.18);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: var(--shadow-soft);
+  }
+  .carousel-slide .caption { max-width: 640px; }
+
+  .carousel-control {
+    position: absolute;
+    top: 44%;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: #ffffff;
+    color: var(--accent-dark);
+    cursor: pointer;
+    font-size: 34px;
+    line-height: 1;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+    transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+  }
+  .carousel-control:hover, .carousel-control:focus-visible {
+    border-color: var(--accent);
+    color: #ffffff;
+    background: var(--accent-dark);
+    outline: none;
+    transform: translateY(-1px);
+  }
+  .carousel-control-prev { left: 0; }
+  .carousel-control-next { right: 0; }
+
+  .carousel-dots { display: flex; justify-content: center; gap: 9px; margin-top: 18px; }
+  .carousel-dot {
+    width: 10px;
+    height: 10px;
+    padding: 0;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    background: #ffffff;
+    cursor: pointer;
+    transition: background 180ms ease, transform 180ms ease;
+  }
+  .carousel-dot.is-active { background: var(--accent); transform: scale(1.12); }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 20px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .legend .sw {
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+    border-radius: 4px;
+    margin-right: 7px;
+    vertical-align: -1px;
+  }
+  .sw.y { background: #d9a441; }
+  .sw.t { background: #7fc4bc; }
+  .sw.b { background: #5b6b8a; }
+
+  /* ---------------- BibTeX ---------------- */
+  .bib {
+    position: relative;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  .bib pre {
+    margin: 0;
+    padding: 22px 24px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #f3f6fb;
+    color: #222222;
+    font-size: 13.5px;
+    line-height: 1.6;
+    overflow-x: auto;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  .copy-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    padding: 5px 14px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #ffffff;
+    color: #444444;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(18, 52, 105, 0.08);
+    transition: border-color 180ms ease, color 180ms ease, transform 180ms ease;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent-dark); transform: translateY(-1px); }
+
+  /* ---------------- Footer ---------------- */
+  .footer {
+    padding: 36px 0;
+    background: linear-gradient(180deg, rgba(247, 249, 251, 0.96), rgba(239, 244, 250, 0.96));
+    border-top: 1px solid var(--line);
+  }
+  .footer p { margin: 0; color: var(--muted); font-size: 14px; }
+  .footer .anchors { display: flex; flex-wrap: wrap; gap: 6px 18px; justify-content: center; margin-bottom: 14px; }
+  .footer .anchors a { color: var(--muted); font-size: 13.5px; }
+  .footer .anchors a:hover { color: var(--accent); }
+
+  /* ---------------- Reveal on scroll ---------------- */
+  .reveal-ready .reveal-item {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 620ms ease, transform 620ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .reveal-ready .reveal-item.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-ready .reveal-item.is-visible img { animation: imageSettle 640ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+  @keyframes heroLift {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes imageSettle {
+    from { opacity: 0.82; filter: saturate(0.94); transform: translateY(8px) scale(0.992); }
+    to { opacity: 1; filter: saturate(1); transform: translateY(0) scale(1); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
+    .carousel-track, .carousel-slide { transition: none; }
+    .reveal-ready .reveal-item { opacity: 1; transform: none; }
+  }
+
+  @media (max-width: 860px) {
+    .highlights { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .stages { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 760px) {
+    .container, .container.narrow { width: min(100% - 28px, 1000px); }
+    .hero { padding-top: 40px; }
+    .hero-logo { max-width: 84px; }
+    h1 { font-size: 34px; }
+    h2 { font-size: 28px; }
+    .subtitle { font-size: 19px; }
+    .authors, .affiliations { font-size: 15px; }
+    .section { padding: 44px 0; }
+    .highlights { grid-template-columns: 1fr; }
+    .highlight-card { min-height: auto; }
+    .method-steps ol { grid-template-columns: 1fr; }
+    .method-steps li { min-height: auto; }
+    .content { font-size: 16px; text-align: left; }
+    .analysis-carousel { padding: 0 40px; }
+    .carousel-control { width: 34px; height: 34px; font-size: 28px; }
+    .carousel-slide img { width: 100%; }
+    .figure-block img { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero" id="top">
+  <div class="container center">
+    <img class="hero-logo" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%231f6ed8'/%3E%3Cstop offset='1' stop-color='%231556ab'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M24 14h16M28 14v9l-10.5 16.5A5 5 0 0 0 21.9 47h20.2a5 5 0 0 0 4.4-7.5L36 23v-9' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M25 32h14M28 38h8M30 44h4' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E" alt="PaperGym logo">
+
+    <h1>PaperGym</h1>
+    <p class="subtitle">Building Open Scientific Researchers with
+      <span class="g-mark">Knowledge Extraction</span> and
+      <span class="g-mark">Dual-Dimension Rubric Synthesis</span></p>
+
+    <p class="authors">
+      Author 1<sup>1,*</sup>, Author 2<sup>1</sup>, Author 3<sup>1,2</sup>, Author 4<sup>1,†</sup>
+    </p>
+    <p class="affiliations">
+      <sup>1</sup>Affiliation 1 &nbsp;&nbsp;
+      <sup>2</sup>Affiliation 2
+    </p>
+    <p class="note">
+      <sup>*</sup>Equal contribution &nbsp;&nbsp; <sup>†</sup>Corresponding author
+    </p>
+    <p class="venue">Preprint · 2026</p>
+
+    <div class="links">
+      <!-- ==================== LINKS ====================
+           Paper -> arXiv (link to be added when the paper is released)
+           Code  -> GitHub repository for the project source code
+           Model -> Hugging Face model card
+           Data  -> Hugging Face dataset card
+      =============================================================== -->
+      <a class="button" href="https://github.com/ZJU-REAL/PaperGym" target="_blank" rel="noopener noreferrer" title="Source code on GitHub">
+        <span class="button-icon" aria-hidden="true">&lt;/&gt;</span>
+        <span>Code</span>
+      </a>
+      <a class="button" href="https://huggingface.co/CabbageWyh/PaperGym-Model" target="_blank" rel="noopener noreferrer" title="Model on Hugging Face">
+        <span class="button-icon button-icon-hf" aria-hidden="true">🤗</span>
+        <span>Model</span>
+      </a>
+      <a class="button" href="https://huggingface.co/datasets/CabbageWyh/PaperGym-Data" target="_blank" rel="noopener noreferrer" title="Dataset on Hugging Face">
+        <span class="button-icon button-icon-hf" aria-hidden="true">🤗</span>
+        <span>Data</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="section tint abstract-section" id="abstract">
+    <div class="container narrow">
+      <h2>Abstract</h2>
+      <div class="content">
+        <p>
+          The Rubric-as-Rewards paradigm has become a prevalent strategy for enhancing the research-plan
+          generation capability of large language models (LLMs). However, existing scientific task datasets
+          commonly suffer from <strong>data contamination</strong>, <strong>evaluation bias</strong>, and
+          <strong>insufficient domain specialization</strong>, resulting in an inadequate training corpus
+          and limited training effectiveness. To address these challenges, we propose <strong>PaperGym</strong>,
+          a benchmark featuring a four-stage knowledge extraction pipeline that decouples research questions
+          from reference solutions, together with a dual-dimensional rubric construction strategy that evaluates
+          proposals along the complementary dimensions of <em>methodological innovation</em> and
+          <em>experimental design</em>. We further validate the quality of the constructed dataset through a
+          two-stage training framework that couples <em>On-Policy Self-Distillation</em> (OPSD) with
+          <em>Group Relative Policy Optimization</em> (GRPO).
+        </p>
+        <p>
+          Experiments show that models trained with our framework achieve significant and consistent
+          improvements on in-domain test sets (<b>PaperGym-Innov</b> and <b>PaperGym-Design</b>) as well
+          as on the external benchmarks ResearchQA, ResearchPlanGen-ML, and RubricHub Science — with the
+          fine-tuned <b>Qwen3-8B performing close to proprietary models on ResearchQA</b> (73.48) and
+          <b>surpassing the substantially larger model Kimi K2.6</b> (73.19).
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="highlights">
+    <div class="container">
+      <h2>Highlights</h2>
+      <p class="section-lead">
+        Existing rubric-based benchmarks suffer from data contamination, evaluation bias, and limited
+        domain specialization. PaperGym addresses all three at their source.
+      </p>
+      <div class="highlights">
+        <div class="highlight-card">
+          <div class="highlight-number">3.73%</div>
+          <div class="highlight-text">Data leakage — roughly 3–8× lower than existing benchmarks (11.90%–34.10%).</div>
+        </div>
+        <div class="highlight-card">
+          <div class="highlight-number">20,000</div>
+          <div class="highlight-text">Instances in PaperGym-20k across five domains, with held-out Innov / Design test sets.</div>
+        </div>
+        <div class="highlight-card">
+          <div class="highlight-number">73.48</div>
+          <div class="highlight-text">ResearchQA score with fine-tuned Qwen3-8B, surpassing the larger Kimi K2.6 (73.19).</div>
+        </div>
+        <div class="highlight-card">
+          <div class="highlight-number">58.1%</div>
+          <div class="highlight-text">Win rate on ResearchPlanGen-ML, vs. 28.2% for RubricHub-trained and 13.7% for the base model.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section tint" id="method">
+    <div class="container">
+      <h2>Method · Data Generation</h2>
+      <p class="section-lead">
+        A four-stage knowledge-extraction pipeline decomposes each paper into disjoint sections, then
+        synthesizes questions and reference answers from <em>non-overlapping</em> sources — eliminating
+        contamination at its origin.
+      </p>
+
+      <div class="figure-block wide">
+        <img src="images/framework.png" alt="Overview of the PaperGym framework: (a) data generation from arXiv papers into four stages; (b) two-stage policy training with rubric-based OPSD followed by rubric-as-rewards GRPO.">
+        <p class="caption">
+          <strong>The PaperGym framework.</strong> <strong>(a) Data Generation:</strong> arXiv papers are
+          parsed into four stages to synthesize questions and answers; rubrics are generated, merged, ranked,
+          and filtered. <strong>(b) Two-Stage Policy Training:</strong> rubric-based OPSD followed by
+          rubric-as-rewards GRPO.
+        </p>
+      </div>
+
+      <div class="content narrow method-steps">
+        <p>PaperGym operates in four stages:</p>
+        <ol>
+          <li>
+            <strong>Parse.</strong>
+            Each arXiv paper is decomposed into four stages — Research Goal, Background, Research Method, and
+            Experimental Design (excluding concrete numerical results) — via a <b>map-reduce</b> procedure
+            using Qwen3-235B-A22B.
+          </li>
+          <li>
+            <strong>Decouple.</strong>
+            The research question is synthesized from <b>Research Goal + Background</b>; the reference answer
+            from <b>Research Method + Experimental Design</b> — disjoint sections, so contamination is prevented
+            at the source.
+          </li>
+          <li>
+            <strong>Rubricify.</strong>
+            Specialized rubrics (R<sub>Q</sub> + R<sub>A</sub>) are merged, deduplicated, ranked, and filtered
+            to the top <var>n</var> = 10 criteria per instance, covering both <b>methodological innovation</b>
+            and <b>experimental design</b>; a validated <b>general rubric</b> is applied uniformly.
+          </li>
+          <li>
+            <strong>Output.</strong>
+            The resulting <b>PaperGym-20k</b> dataset (20,000 instances) and the held-out
+            <b>PaperGym-Innov</b> / <b>PaperGym-Design</b> test sets.
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="training">
+    <div class="container">
+      <h2>Rubric-Centered Training</h2>
+      <p class="section-lead">
+        Both training stages are supervised by the same rubrics and together form a
+        <strong>teach–explore</strong> paradigm: OPSD warms up with dense token-level guidance, then
+        GRPO explores toward high-reward regions using the rubrics as rewards.
+      </p>
+
+      <div class="stages">
+        <div class="stage">
+          <span class="stag">Stage 1 · Warm-up</span>
+          <h3>Rubric-Conditioned OPSD</h3>
+          <p>
+            A rubric-conditioned teacher guides the unconditioned student on on-policy rollouts; the student
+            matches the teacher by minimizing token-level KL divergence:
+          </p>
+          <div class="eq">ℒ<sub>OPSD</sub> = 𝔼 Σ<sub>n</sub> KL( π<sub>θ</sub>(· | x, ℛ, ŷ<sub>&lt;n</sub>) ∥ π<sub>θ</sub>(· | x, ŷ<sub>&lt;n</sub>) )</div>
+          <p class="eq-note">
+            The rubric keeps a broader set of valid continuations than answer-conditioned distillation,
+            aligned with the stage-2 reward.
+          </p>
+        </div>
+
+        <div class="stage">
+          <span class="stag">Stage 2 · Explore</span>
+          <h3>GRPO with Rubric-as-Rewards</h3>
+          <p>
+            A frozen copy of the base model self-grades each candidate response criterion by criterion; the
+            reward combines the specialized and general rubric scores as:
+          </p>
+          <div class="eq"><var>r<sub>i</sub></var> = <var>α</var> · <var>r<sub>i,spec</sub></var> + (1 − <var>α</var>) · <var>r<sub>i,gen</sub></var> &nbsp;&nbsp;·&nbsp;&nbsp; <var>α</var> = 0.7</div>
+          <p class="eq-note">
+            Setting α = 0.7 emphasizes task-specific scientific fit while keeping pressure on general proposal
+            quality; GRPO then optimizes the policy.
+          </p>
+        </div>
+      </div>
+
+      <p class="impl">
+        <b>Implementation.</b> Qwen3 models at the 1.7B / 4B / 8B scales (bf16). OPSD fine-tunes with LoRA
+        (r = 64, α = 128) at a learning rate of 5×10⁻⁶ and batch size 8; GRPO uses verl with 8 responses per
+        prompt via vLLM, a KL penalty of 0.01, and a learning rate of 1×10⁻⁶. The 4B and 8B models serve as
+        their own rubric verifiers, while the 1.7B model is scored by the 4B model.
+      </p>
+    </div>
+  </section>
+
+  <section class="section tint" id="dataset">
+    <div class="container">
+      <h2>Dataset</h2>
+      <div class="content">
+        <p>
+          PaperGym-20k is built from publicly available arXiv papers, extracting plain-text LaTeX source for
+          cleaner content than rendered PDFs. The training set comprises ~10,000 computer-science papers
+          published between January 2015 and December 2025. Each paper is decomposed into <b>four stages</b> —
+          Research Goal, Background, Research Method, and Experimental Design (the latter excluding concrete
+          numerical results to prevent spurious memorization) — via a <b>map-reduce</b> procedure using
+          Qwen3-235B-A22B.
+        </p>
+        <p>
+          This decomposition is what makes the benchmark low-leakage: the research question is synthesized from
+          the <b>Research Goal and Background</b>, and the reference answer from the <b>Research Method and
+          Experimental Design</b>. Because the two are drawn from <b>disjoint paper sections</b>, data
+          contamination is prevented at its source.
+        </p>
+      </div>
+
+      <div class="figure-block">
+        <img src="images/data_analysis.png" alt="Preliminary analysis of PaperGym-20k: domain category breakdown, scorer self-consistency, and pairwise inter-model agreement.">
+        <p class="caption">
+          <strong>Preliminary analysis.</strong> <strong>Left:</strong> category breakdown of PaperGym-20k
+          across domains. <strong>Middle:</strong> mean score vs. across-round range for four scoring models
+          over five independent runs. <strong>Right:</strong> pairwise inter-model agreement on binary rubric
+          verdicts.
+        </p>
+      </div>
+
+      <div class="info-box">
+        <b>Held-out test sets.</b> <b>PaperGym-Innov</b> derives the question from Research Goal + Background,
+        uses Research Method as the reference answer, and scores along the <em>innovation</em> dimension.
+        <b>PaperGym-Design</b> additionally incorporates Research Method into the question, uses Experimental
+        Design as the reference answer, and scores along the <em>design</em> dimension. Both sample 400 papers
+        per domain (cs, econ, physics) released after January 2026, with two instances per paper. Among the
+        specialized rubrics, <b>63.8% of criteria target Method</b> and <b>36.2% target Experiment</b>;
+        four scoring models were verified to be highly self-consistent across five independent runs, with the
+        small Qwen3-8B reaching nearly 80% agreement with Kimi K2.6.
+      </div>
+
+      <h2 style="margin-top:44px">Data Leakage</h2>
+      <p class="section-lead">
+        An LLM judge checks whether each rubric criterion can be directly inferred from the research question
+        alone. The four-stage decomposition suppresses spurious correlations between input and target, keeping
+        leakage at only <strong>3.73%</strong> — roughly a <strong>3–8× reduction</strong> over existing benchmarks.
+      </p>
+      <div class="table-card narrow">
+        <table class="data">
+          <thead><tr><th style="text-align:left">Dataset</th><th>Leakage Rate</th></tr></thead>
+          <tbody>
+            <tr class="pipeline"><td>PaperGym-20k</td><td class="best">3.73%</td></tr>
+            <tr><td>PaperGym-Innov</td><td>4.71%</td></tr>
+            <tr><td>PaperGym-Design</td><td>4.97%</td></tr>
+            <tr><td>HealthBench</td><td>11.90%</td></tr>
+            <tr><td>RubricHub Science</td><td>17.39%</td></tr>
+            <tr><td>ResearchQA</td><td>19.22%</td></tr>
+            <tr><td>ResearchPlanGen-ML</td><td>31.29%</td></tr>
+            <tr><td>ResearchPlanGen-ArXiv</td><td>34.10%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="table-note"><b>Table 2.</b> Data-leakage comparison. PaperGym maintains the lowest leakage rate among open-source alternatives.</p>
+    </div>
+  </section>
+
+  <section class="section" id="results">
+    <div class="container">
+      <h2>Main Results</h2>
+      <p class="section-lead">
+        The OPSD + GRPO scheme achieves the highest score on every test set at every scale, improving the average
+        score by <b>+5.56 / +5.04 / +4.81</b> on Qwen3-1.7B / 4B / 8B over the untrained base models. In contrast,
+        SFT merely imitates the single reference answer, collapsing the output distribution into a narrow mode —
+        and among general-purpose LLMs, the fine-tuned <b>Qwen3-8B surpasses Kimi K2.6 on ResearchQA</b> (73.48
+        vs. 73.19).
+      </p>
+
+      <div class="table-card">
+        <table class="data">
+          <thead>
+            <tr>
+              <th style="text-align:left">Model</th>
+              <th>RubricHub<br>Science</th>
+              <th>ResearchPlan<br>-Gen ML</th>
+              <th>ResearchQA</th>
+              <th>Innov</th>
+              <th>Design</th>
+              <th>Avg</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="group"><td colspan="7">Proprietary Models</td></tr>
+            <tr><td>Qwen3.5-Plus</td><td>63.74</td><td>47.32</td><td>75.12</td><td>27.28</td><td>27.07</td><td>48.11</td></tr>
+            <tr><td>GLM-5.1</td><td class="best">63.93</td><td>51.89</td><td>78.69</td><td>30.44</td><td>28.73</td><td>50.74</td></tr>
+            <tr><td>Claude-Sonnet-5</td><td>60.10</td><td>60.03</td><td>66.04</td><td>36.17</td><td class="best">39.63</td><td>52.39</td></tr>
+            <tr><td>Kimi K2.6</td><td>63.31</td><td>54.49</td><td>73.19</td><td>31.12</td><td>36.07</td><td>51.64</td></tr>
+            <tr><td>DeepSeek-V4-Flash</td><td>62.04</td><td>52.97</td><td class="best">79.59</td><td>29.82</td><td>37.74</td><td>52.43</td></tr>
+            <tr><td>GPT-5.1</td><td>63.75</td><td class="best">61.66</td><td>76.52</td><td class="best">36.59</td><td>34.11</td><td class="best">54.53</td></tr>
+
+            <tr class="group"><td colspan="7">Rubric-based Models</td></tr>
+            <tr><td>Intern-S1-Mini</td><td>42.69</td><td>18.43</td><td>68.60</td><td>7.48</td><td>4.48</td><td>28.34</td></tr>
+            <tr><td>Rebicon-Preview</td><td>56.83</td><td>25.40</td><td class="best">76.59</td><td>20.88</td><td>20.42</td><td>40.02</td></tr>
+            <tr><td>S1-VL-RL</td><td class="best">57.77</td><td class="best">29.23</td><td>72.09</td><td class="best">22.31</td><td class="best">23.68</td><td class="best">41.02</td></tr>
+
+            <tr class="group"><td colspan="7">PaperGym-Trained Models</td></tr>
+            <tr><td>Qwen3-1.7B-Thinking</td><td>31.84</td><td>4.89</td><td>55.14</td><td>10.76</td><td>8.58</td><td>22.24</td></tr>
+            <tr><td>… w/ SFT</td><td>31.95</td><td>5.85</td><td>57.36</td><td>11.88</td><td>8.50</td><td>23.11</td></tr>
+            <tr><td>… w/ OPSD</td><td>34.31</td><td>6.75</td><td>60.61</td><td>14.16</td><td>10.45</td><td>25.26</td></tr>
+            <tr><td>… w/ GRPO</td><td>31.62</td><td>5.34</td><td>55.67</td><td>11.47</td><td>8.60</td><td>22.54</td></tr>
+            <tr class="pipeline"><td>… w/ OPSD + GRPO</td><td class="best">34.90</td><td class="best">8.37</td><td class="best">65.93</td><td class="best">17.38</td><td class="best">12.45</td><td class="best">27.81</td></tr>
+            <tr><td>Qwen3-4B-Thinking</td><td>41.97</td><td>13.48</td><td>63.15</td><td>16.12</td><td>13.89</td><td>29.72</td></tr>
+            <tr><td>… w/ SFT</td><td>41.57</td><td>12.14</td><td>64.87</td><td>17.90</td><td>15.04</td><td>30.30</td></tr>
+            <tr><td>… w/ OPSD</td><td>44.03</td><td>15.71</td><td>66.93</td><td>18.98</td><td>15.06</td><td>32.03</td></tr>
+            <tr><td>… w/ GRPO</td><td>43.64</td><td>13.60</td><td>66.97</td><td>18.57</td><td>15.95</td><td>31.75</td></tr>
+            <tr class="pipeline"><td>… w/ OPSD + GRPO</td><td class="best">45.15</td><td class="best">16.93</td><td class="best">70.74</td><td class="best">22.81</td><td class="best">18.19</td><td class="best">34.76</td></tr>
+            <tr><td>Qwen3-8B-Thinking</td><td>46.07</td><td>20.28</td><td>66.65</td><td>18.69</td><td>17.03</td><td>33.74</td></tr>
+            <tr><td>… w/ SFT</td><td>45.29</td><td>17.91</td><td>67.53</td><td>17.52</td><td>15.68</td><td>32.79</td></tr>
+            <tr><td>… w/ OPSD</td><td>47.41</td><td>23.17</td><td>69.17</td><td>21.42</td><td>18.04</td><td>35.84</td></tr>
+            <tr><td>… w/ GRPO</td><td>48.09</td><td>20.76</td><td>71.02</td><td>20.26</td><td>19.17</td><td>35.86</td></tr>
+            <tr class="pipeline"><td>… w/ OPSD + GRPO</td><td class="best">49.41</td><td class="best">23.53</td><td class="best">73.48</td><td class="best">24.47</td><td class="best">21.88</td><td class="best">38.55</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="table-note">
+        <b>Table 1.</b> Main results across model scales and training strategies on RubricHub Science,
+        ResearchPlanGen-ML, ResearchQA, and the in-domain PaperGym-Innov / PaperGym-Design test sets.
+        Best result per column within each section is highlighted; shaded rows are the full OPSD + GRPO pipeline.
+      </p>
+
+      <h2 style="margin-top:52px">Win-Rate Evaluation</h2>
+      <p class="section-lead">
+        On ResearchPlanGen-ML — a benchmark independent of all training data — an LLM judge selects the best of
+        three models sharing the same training regimen: the baseline trained on <strong>PaperGym-20k</strong>,
+        the baseline trained on <strong>RubricHub Science</strong>, and the <strong>untrained base model</strong>.
+        The PaperGym-trained model wins <strong>58.1% of Overall Score</strong> comparisons (vs. 28.2% for its
+        RubricHub-trained counterpart and 13.7% for the base model), demonstrating the value of rubric-centric
+        data construction.
+      </p>
+
+      <div class="carousel-block">
+        <div class="analysis-carousel" data-carousel tabindex="0" aria-label="Win-rate results by criterion">
+          <button class="carousel-control carousel-control-prev" type="button" data-carousel-prev aria-label="Previous criterion" title="Previous criterion"><span aria-hidden="true">&#8249;</span></button>
+          <div class="carousel-viewport">
+            <div class="carousel-track">
+              <article class="carousel-slide is-active" data-carousel-slide>
+                <img src="images/overall.png" alt="Win rate: overall score">
+                <p class="caption"><strong>Overall Score.</strong> Overall scientific quality and practical usefulness as a research blueprint.</p>
+              </article>
+              <article class="carousel-slide" data-carousel-slide>
+                <img src="images/goal_alignment.png" alt="Win rate: goal alignment">
+                <p class="caption"><strong>Goal Alignment.</strong> Understanding and addressing the core research goal, including identifying key challenges and formulating relevant hypotheses.</p>
+              </article>
+              <article class="carousel-slide" data-carousel-slide>
+                <img src="images/novel_insight.png" alt="Win rate: novel insight">
+                <p class="caption"><strong>Novel Insight.</strong> Originality and research insight, including novel hypotheses, perspectives, or methodologies connected to the research goal.</p>
+              </article>
+              <article class="carousel-slide" data-carousel-slide>
+                <img src="images/scientific_soundness.png" alt="Win rate: scientific soundness">
+                <p class="caption"><strong>Scientific Soundness.</strong> Scientific rigor and coherence, from hypothesis to methodology to evidence, with consideration of baselines, controls, and validation.</p>
+              </article>
+              <article class="carousel-slide" data-carousel-slide>
+                <img src="images/execution_quality.png" alt="Win rate: execution quality">
+                <p class="caption"><strong>Execution Quality.</strong> Clarity, feasibility, and implementation structure, balancing ambition with practicality.</p>
+              </article>
+              <article class="carousel-slide" data-carousel-slide>
+                <img src="images/expected_impact.png" alt="Win rate: expected impact">
+                <p class="caption"><strong>Expected Impact.</strong> Likelihood of generating meaningful and interpretable research outcomes that advance understanding or provide methodological contributions.</p>
+              </article>
+            </div>
+          </div>
+          <button class="carousel-control carousel-control-next" type="button" data-carousel-next aria-label="Next criterion" title="Next criterion"><span aria-hidden="true">&#8250;</span></button>
+        </div>
+
+        <div class="carousel-dots" role="tablist" aria-label="Win-rate criteria">
+          <button class="carousel-dot is-active" type="button" data-carousel-dot aria-label="Show overall score" aria-current="true"></button>
+          <button class="carousel-dot" type="button" data-carousel-dot aria-label="Show goal alignment" aria-current="false"></button>
+          <button class="carousel-dot" type="button" data-carousel-dot aria-label="Show novel insight" aria-current="false"></button>
+          <button class="carousel-dot" type="button" data-carousel-dot aria-label="Show scientific soundness" aria-current="false"></button>
+          <button class="carousel-dot" type="button" data-carousel-dot aria-label="Show execution quality" aria-current="false"></button>
+          <button class="carousel-dot" type="button" data-carousel-dot aria-label="Show expected impact" aria-current="false"></button>
+        </div>
+
+        <div class="legend">
+          <span><span class="sw y"></span>PaperGym-20k-trained</span>
+          <span><span class="sw t"></span>RubricHub-trained</span>
+          <span><span class="sw b"></span>Untrained base</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="section tint" id="bibtex">
+    <div class="container narrow">
+      <h2>BibTeX</h2>
+      <p class="section-lead" style="margin-bottom:26px">If you find PaperGym useful in your research, please consider citing:</p>
+      <div class="bib">
+        <button class="copy-btn" id="copyBtn" type="button">Copy</button>
+        <pre id="bibtex">@misc{wang2026papergym,
+  title   = {PaperGym: Building Open Scientific Researchers with
+             Knowledge Extraction and Dual-Dimension Rubric Synthesis},
+  author  = {Yuhan Wang and Zhengxi Lu and Yuchen Yan and Kaitao Song and
+             Wenqi Zhang and Weiming Lu and Jun Xiao and Yueting Zhuang and
+             Yongliang Shen},
+  year    = {2026},
+  url     = {https://zju-real.github.io/PaperGym/},
+  note    = {Update title and arXiv ID when released}
+}</pre>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="container center">
+    <div class="anchors">
+      <a href="#top">Top</a>
+      <a href="#abstract">Abstract</a>
+      <a href="#highlights">Highlights</a>
+      <a href="#method">Method</a>
+      <a href="#training">Training</a>
+      <a href="#dataset">Dataset</a>
+      <a href="#results">Results</a>
+      <a href="#bibtex">BibTeX</a>
+    </div>
+    <p>PaperGym · © 2026 · Built from the PaperGym paper · <a href="https://cabbagewyh.github.io/">Yuhan Wang's homepage</a></p>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    "use strict";
+
+    // ---- Copy BibTeX ----
+    var btn = document.getElementById('copyBtn');
+    var pre = document.getElementById('bibtex');
+    if (btn && pre) {
+      btn.addEventListener('click', function () {
+        navigator.clipboard.writeText(pre.textContent).then(function () {
+          btn.textContent = 'Copied';
+          setTimeout(function () { btn.textContent = 'Copy'; }, 1800);
+        });
+      });
+    }
+
+    // ---- Win-rate carousel ----
+    document.querySelectorAll("[data-carousel]").forEach(function (carousel) {
+      var section = carousel.parentElement;
+      var track = carousel.querySelector(".carousel-track");
+      var slides = Array.from(carousel.querySelectorAll("[data-carousel-slide]"));
+      var dots = Array.from(section.querySelectorAll("[data-carousel-dot]"));
+      var prev = carousel.querySelector("[data-carousel-prev]");
+      var next = carousel.querySelector("[data-carousel-next]");
+      var activeIndex = slides.findIndex(function (s) { return s.classList.contains("is-active"); });
+      if (!track || !slides.length || !prev || !next) return;
+      if (activeIndex < 0) activeIndex = 0;
+
+      function showSlide(i) {
+        activeIndex = (i + slides.length) % slides.length;
+        track.style.transform = "translateX(-" + (activeIndex * 100) + "%)";
+        slides.forEach(function (s, idx) {
+          var on = idx === activeIndex;
+          s.classList.toggle("is-active", on);
+          s.setAttribute("aria-hidden", String(!on));
+        });
+        dots.forEach(function (d, idx) {
+          var on = idx === activeIndex;
+          d.classList.toggle("is-active", on);
+          d.setAttribute("aria-current", String(on));
+        });
+      }
+      prev.addEventListener("click", function () { showSlide(activeIndex - 1); });
+      next.addEventListener("click", function () { showSlide(activeIndex + 1); });
+      dots.forEach(function (d, idx) { d.addEventListener("click", function () { showSlide(idx); }); });
+      carousel.addEventListener("keydown", function (e) {
+        if (e.key === "ArrowLeft") showSlide(activeIndex - 1);
+        if (e.key === "ArrowRight") showSlide(activeIndex + 1);
+      });
+      showSlide(activeIndex);
+    });
+
+    // ---- Reveal on scroll ----
+    var revealItems = Array.from(document.querySelectorAll(".section > .container"));
+    if (revealItems.length && "IntersectionObserver" in window) {
+      document.body.classList.add("reveal-ready");
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { rootMargin: "0px 0px -10% 0px", threshold: 0.08 });
+      revealItems.forEach(function (item) {
+        item.classList.add("reveal-item");
+        observer.observe(item);
+      });
+    }
+  })();
+</script>
+
+</body>
+</html>
