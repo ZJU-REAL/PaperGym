@@ -49,8 +49,8 @@ from score_responses import (
 )
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_BASE_URL = os.getenv("OPENSCIENCE_BASE_URL", "http://your-api/v1")
-DEFAULT_API_KEY = os.getenv("OPENSCIENCE_API_KEY", "")
+DEFAULT_BASE_URL = os.getenv("PAPERGYM_BASE_URL", "http://your-api/v1")
+DEFAULT_API_KEY = os.getenv("PAPERGYM_API_KEY", "")
 DEFAULT_MODEL = "DeepSeek-V4-Flash"
 DEFAULT_OUTPUT_DIR = os.path.join(SCRIPT_DIR, "answer", "stablility")
 CATEGORIES = ["cs", "econ", "physics"]

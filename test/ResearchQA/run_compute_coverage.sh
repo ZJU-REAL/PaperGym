@@ -13,8 +13,8 @@ DATA_PATH="$SCRIPT_DIR/data/research_qa.json"
 # API_BASE="http://xxx"
 # API_KEY="sk-xxx"
 # MODEL="deepseek-v4-flash"
-API_BASE="${OPENSCIENCE_BASE_URL:-http://your-api/v1}"
-API_KEY="${OPENSCIENCE_API_KEY:-}"
+API_BASE="${PAPERGYM_BASE_URL:-http://your-api/v1}"
+API_KEY="${PAPERGYM_API_KEY:-}"
 MODEL="DeepSeek-V4-Flash"
 
 # Rubric batch size

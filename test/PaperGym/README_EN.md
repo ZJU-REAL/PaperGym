@@ -1,4 +1,4 @@
-# OpenScience
+# PaperGym
 
 Category-based model response generation and scoring tool.
 

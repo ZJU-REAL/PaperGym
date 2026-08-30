@@ -29,8 +29,8 @@ from retry import retry
 # =============================================================================
 ANSWER_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "answer")
 
-API_KEY = os.getenv("OPENSCIENCE_API_KEY", "")
-BASE_URL = os.getenv("OPENSCIENCE_BASE_URL", "http://your-api/v1")
+API_KEY = os.getenv("PAPERGYM_API_KEY", "")
+BASE_URL = os.getenv("PAPERGYM_BASE_URL", "http://your-api/v1")
 MODEL = "DeepSeek-V4-Flash"
 
 MAX_RETRIES = 5

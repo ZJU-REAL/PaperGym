@@ -44,9 +44,9 @@ class LLMClient:
         Initialize the LLM client with API key and base URL
         """
         if api_key is None:
-            api_key = os.getenv("OPENSCIENCE_API_KEY", "")
+            api_key = os.getenv("PAPERGYM_API_KEY", "")
         if base_url is None:
-            base_url = os.getenv("OPENSCIENCE_BASE_URL", "http://your-api/v1")
+            base_url = os.getenv("PAPERGYM_BASE_URL", "http://your-api/v1")
         
         self.client = OpenAI(api_key=api_key, base_url=base_url, timeout=timeout)
         self.model = model

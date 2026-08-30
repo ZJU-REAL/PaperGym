@@ -42,9 +42,9 @@ class LLMClient:
         print(f"[LLMClient Init][Thread: {thread_id}] Initializing client for model '{model}'", flush=True)
         
         if api_key is None:
-            api_key = os.getenv("OPENSCIENCE_API_KEY", "")
+            api_key = os.getenv("PAPERGYM_API_KEY", "")
         if base_url is None:
-            base_url = os.getenv("OPENSCIENCE_BASE_URL", "http://your-api/v1")
+            base_url = os.getenv("PAPERGYM_BASE_URL", "http://your-api/v1")
         
         self.client = OpenAI(api_key=api_key, base_url=base_url)
         self.model = model
@@ -473,19 +473,19 @@ def process_paper_batch(args):
     # Initialize a new LLM client for this thread
     llm_client = get_llm_client(
         model="Qwen3-235B-A22B",
-        api_key=os.getenv("OPENSCIENCE_API_KEY", ""),
-        base_url=os.getenv("OPENSCIENCE_BASE_URL", "http://your-api/v1")
+        api_key=os.getenv("PAPERGYM_API_KEY", ""),
+        base_url=os.getenv("PAPERGYM_BASE_URL", "http://your-api/v1")
         )
 
     # rubric_client = get_llm_client(
     #     model="Qwen3-235B-A22B",
-    #     api_key=os.getenv("OPENSCIENCE_API_KEY", ""),
-    #     base_url=os.getenv("OPENSCIENCE_BASE_URL", "http://your-api/v1")
+    #     api_key=os.getenv("PAPERGYM_API_KEY", ""),
+    #     base_url=os.getenv("PAPERGYM_BASE_URL", "http://your-api/v1")
     #     )
     rubric_client = get_llm_client(
         model="DeepSeek-V4-Flash",
-        api_key=os.getenv("OPENSCIENCE_API_KEY", ""),
-        base_url=os.getenv("OPENSCIENCE_BASE_URL", "http://your-api/v1")
+        api_key=os.getenv("PAPERGYM_API_KEY", ""),
+        base_url=os.getenv("PAPERGYM_BASE_URL", "http://your-api/v1")
         )
     
     processed_count = 0

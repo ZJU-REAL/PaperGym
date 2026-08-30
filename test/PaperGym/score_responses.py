@@ -522,7 +522,7 @@ def parse_args():
     parser.add_argument("--max_items", type=int, default=400,
                         help="Max items to process. 0 or negative for all.")
 
-    parser.add_argument("--api_key", type=str, default=os.getenv("OPENSCIENCE_API_KEY", ""),
+    parser.add_argument("--api_key", type=str, default=os.getenv("PAPERGYM_API_KEY", ""),
                         help="API Key for Scorer LLM")
     parser.add_argument("--base_url", type=str, default="http://xxx/",
                         help="Base URL for Scorer LLM")

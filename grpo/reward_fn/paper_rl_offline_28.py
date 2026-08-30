@@ -418,8 +418,8 @@ def paper_rl_reward(data_source, solution_str, ground_truth, extra_info=None):
         
         # Ensure model is loaded
         llm_client = LLMClient(
-            api_key=os.getenv("OPENSCIENCE_API_KEY", ""),
-            base_url=os.getenv("OPENSCIENCE_BASE_URL", "http://your-api/v1"),
+            api_key=os.getenv("PAPERGYM_API_KEY", ""),
+            base_url=os.getenv("PAPERGYM_BASE_URL", "http://your-api/v1"),
             model=os.getenv("JUDGE_MODEL_PATH", DEFAULT_JUDGE_MODEL)
         )
         

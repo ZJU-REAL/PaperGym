@@ -1,87 +1,164 @@
-# OpenScience
+<div align="center">
 
-基于 **Open-Ended Scientific Problem** 的研究项目，围绕**科学问题生成 → 数据构建 → 模型训练（SFT / 自蒸馏 / GRPO）→ 评测**的完整闭环展开。通过从学术论文中抽取研究背景与方法，生成开放式的科学问题（research problem）、参考答案（reference solution）与可客观评判的评分标准（Rubric），构建高质量的训练数据集，并在此基础上进行多种训练与评测实验。
+# PaperGym: Rubric-Centered Framework for Research-Plan Generation
 
-## 目录结构
+[![Paper](https://img.shields.io/badge/Paper-Preprint_PDF-b31b1b.svg)](https://zju-real.github.io/PaperGym/paper.pdf)
+[![Project Page](https://img.shields.io/badge/Project-Page-2f6f9f.svg)](https://zju-real.github.io/PaperGym)
+[![Model](https://img.shields.io/badge/Model-HuggingFace-FFD21E.svg)](https://huggingface.co/CabbageWyh/PaperGym-Model)
+[![Dataset](https://img.shields.io/badge/Dataset-HuggingFace-yellow.svg)](https://huggingface.co/datasets/CabbageWyh/PaperGym-Data)
+
+**Yuhan Wang<sup>1,\*</sup> · Zhengxi Lu<sup>1,\*</sup> · Yuchen Yan<sup>1</sup> · Kaitao Song<sup>2</sup> · Wenqi Zhang<sup>1</sup> · Weiming Lu<sup>1</sup> · Jun Xiao<sup>1</sup> · Yueting Zhuang<sup>1</sup> · Yongliang Shen<sup>1,†</sup>**
+
+<sup>1</sup>Zhejiang University &nbsp;·&nbsp; <sup>2</sup>Apple
+
+<sup>\*</sup>Equal contribution &nbsp;·&nbsp; <sup>†</sup>Corresponding author
+
+</div>
+
+## 🔥 Overview
+
+Research planning is the decisive capability of AI scientists — yet a research plan admits no *verifiable* answer, so reinforcement learning lacks the environment it requires: tasks paired with a critic. **PaperGym** turns each scientific paper into a complete training environment by exploiting the structure of the paper itself:
+
+- The **research question** is synthesized from the paper's *research goal + background*;
+- The **evaluation criteria (rubrics)** are derived from the *method + experiments*, spanning two complementary dimensions — **methodological innovation** and **experimental design**.
+
+Because the question and the criteria come from **disjoint sections** of the paper, criterion leakage drops to **3.7%** (versus 12–34% in existing benchmarks) — the reward can no longer be earned by paraphrase.
+
+The rubrics are then used **twice** during training: first as privileged context for a rubric-conditioned self-distillation teacher, then as the reward for GRPO — a *teach–explore* paradigm.
+
+<p align="center">
+  <img src="assets/framework.png" width="880" alt="PaperGym framework">
+</p>
+
+## ✨ Highlights
+
+- **3.7%** criterion leakage — roughly **3–8× lower** than existing rubric-based benchmarks (12%–34%).
+- **20,000** instances in **PaperGym-20k** across five domains, with held-out **PaperGym-Innov / PaperGym-Design** test sets.
+- **+5.6 / +5.0 / +4.8** average gains over base models across five benchmarks for Qwen3-1.7B / 4B / 8B — beating SFT, either training stage alone, and the reversed ordering.
+- **73.48** on ResearchQA with fine-tuned Qwen3-8B, surpassing the much larger Kimi K2.6 (73.19).
+- **58.1%** win rate in three-way blind comparisons on ResearchPlanGen-ML, vs. 28.2% for a RubricHub-trained baseline.
+
+## 🧱 Method
+
+### Data Generation — a four-stage knowledge-extraction pipeline
+
+Each arXiv paper is decomposed into disjoint sections, and questions / answers are synthesized from **non-overlapping sources**, eliminating data contamination at its origin.
+
+| Stage | What happens |
+|---|---|
+| **Parse** | Each paper is decomposed into *Research Goal, Background, Research Method, Experimental Design* (excluding concrete numerical results) via a map-reduce procedure. |
+| **Decouple** | The question is synthesized from *Goal + Background*; the reference answer from *Method + Design* — disjoint sections, so the reward cannot be earned by paraphrase. |
+| **Rubricify** | Specialized rubrics are merged, deduplicated, ranked, and filtered to the top *n = 10* criteria per instance, covering both **innovation** and **design**; a validated general rubric is applied uniformly. |
+| **Output** | The resulting **PaperGym-20k** training set and the held-out **PaperGym-Innov / PaperGym-Design** test sets. |
+
+### Rubric-Centered Training — a teach–explore paradigm
+
+Both training stages are supervised by the same rubrics.
+
+- **Stage 1 · Warm-up — Rubric-Conditioned OPSD.** A rubric-conditioned teacher guides the unconditioned student on on-policy rollouts, minimizing token-level KL divergence. Because a rubric specifies evaluation *principles* rather than one realized solution, it preserves a broader set of valid continuations than answer-conditioned distillation.
+- **Stage 2 · Explore — GRPO with Rubric-as-Rewards.** A frozen copy of the base model self-grades each candidate response criterion by criterion; the reward combines the specialized and general rubric scores as `r = α · r_spec + (1 − α) · r_gen` with `α = 0.7`.
+
+**Implementation.** Qwen3 models at the 1.7B / 4B / 8B scales (bf16). OPSD fine-tunes with LoRA (r=64, α=128) at lr 5e-6; GRPO runs on verl with 8 responses per prompt via vLLM, a KL penalty of 0.01, and lr 1e-6. The 4B / 8B models serve as their own rubric verifiers, while the 1.7B model is scored by the 4B model.
+
+## 📊 Results
+
+### Main results (Qwen3-8B)
+
+| Training | RubricHub Sci. | ResearchPlanGen-ML | ResearchQA | Innov | Design | Avg |
+|---|--:|--:|--:|--:|--:|--:|
+| Base | 46.07 | 20.28 | 66.65 | 18.69 | 17.03 | 33.74 |
+| SFT | 45.29 | 17.91 | 67.53 | 17.52 | 15.68 | 32.79 |
+| OPSD | 47.41 | 23.17 | 69.17 | 21.42 | 18.04 | 35.84 |
+| GRPO | 48.09 | 20.76 | 71.02 | 20.26 | 19.17 | 35.86 |
+| **OPSD + GRPO** | **49.41** | **23.53** | **73.48** | **24.47** | **21.88** | **38.55** |
+
+### Criterion leakage
+
+| Dataset | Leakage |
+|---|---|
+| **PaperGym-20k** | **3.73%** |
+| PaperGym-Innov | 4.71% |
+| PaperGym-Design | 4.97% |
+| HealthBench | 11.90% |
+| RubricHub Science | 17.39% |
+| ResearchQA | 19.22% |
+| ResearchPlanGen-ML | 31.29% |
+| ResearchPlanGen-ArXiv | 34.10% |
+
+See the [paper](https://zju-real.github.io/PaperGym/paper.pdf) for complete experiments, ablations, and analysis.
+
+## 📦 Released Resources
+
+- **Model**: fine-tuned models on [Hugging Face](https://huggingface.co/CabbageWyh/PaperGym-Model) (`CabbageWyh/PaperGym-Model`).
+- **Corpus & benchmarks**: **PaperGym-20k** (20,000 instances) with held-out **PaperGym-Innov** / **PaperGym-Design** test sets, released on [Hugging Face](https://huggingface.co/datasets/CabbageWyh/PaperGym-Data) (`CabbageWyh/PaperGym-Data`).
+- **Code**: the complete pipeline — data generation, OPSD / GRPO training, and the evaluation suite — lives in this repository.
+
+## 🗂️ Repository Structure
 
 ```
-OpenScience/
-├── data/                    # 顶层汇总数据集
-├── data_generation/         # 数据构建与问题生成
-│   ├── get_paper.py         # 从 arXiv 批量下载论文 TeX 源码
-│   ├── query_category.py    # 通过 arXiv API 查询论文所属类别
-│   ├── process_paper/       # 论文 LaTeX 处理（提取正文 / 合并 / 分节）
-│   └── problem_generation/  # 基于论文生成科学问题与 Rubric
-├── grpo/                    # GRPO 强化学习训练
-│   ├── data/                # 训练 / 验证数据集（Parquet）
-│   ├── reward_fn/           # 离线打分奖励函数
-│   └── scripts/             # 训练启动脚本
-├── opsd/                    # OPSD 自蒸馏训练框架（含 README）
-└── test/                    # 评测与实验框架
-    ├── ResearchPlanGen/     # ResearchPlanGen-ML 数据集评测
-    ├── compare/             # 模型回答盲评对比
-    ├── data_leakage/        # 数据集泄露检测
-    ├── entropy/             # 回答熵（不确定性）测量
-    ├── OpenScience/         # OpenScience（本文）数据集评测 
-    ├── ResearchQA/          # ResearchQA 数据集评测
-    ├── RubricHub/           # RubricHub 数据集评测
-    ├── rubric_rate/         # Rubric 类型构成分析
-    └── stability/           # 评分稳定性分析
+PaperGym/
+├── data_generation/          # Build the corpus from arXiv papers
+│   ├── get_paper.py          #   batch-download paper TeX sources
+│   ├── query_category.py     #   query arXiv categories via API
+│   ├── process_paper/        #   merge / extract / section the LaTeX
+│   └── problem_generation/   #   synthesize questions, answers, rubrics
+├── opsd/                     # Stage 1 · rubric-conditioned OPSD (TRL)
+│   ├── sft_train.py · opsd_train*.py
+│   ├── opsd_trainer*.py      #   JSD loss, vLLM sync, EMA / fixed teacher
+│   ├── data_collator*.py     #   student–teacher input pairs
+│   └── scripts/              #   1B / 4B / 8B launch scripts
+├── grpo/                     # Stage 2 · GRPO with rubric-as-reward (verl)
+│   ├── reward_fn/            #   offline rubric scoring functions
+│   ├── scripts/              #   training launch script
+│   └── data/                 #   train / val sets (Parquet)
+└── test/                     # Evaluation & analysis
+    ├── PaperGym/             #   in-domain Innov / Design evaluation
+    ├── ResearchQA/ · ResearchPlanGen/ · RubricHub/   # external benchmarks
+    ├── compare/              #   blind two- / three-way win-rate comparison
+    ├── data_leakage/         #   criterion-leakage detection
+    ├── entropy/              #   response uncertainty (Shannon entropy)
+    ├── rubric_rate/          #   Method vs. Experiment rubric analysis
+    └── stability/            #   scorer-consistency analysis
 ```
 
-## 模块说明
+## 🚀 Quick Start
 
-### `data_generation/` — 数据构建与问题生成
+Model, dataset, and API paths are placeholders in the launch scripts — replace them per your environment before running. Configure scoring APIs via `.env` (see [`.env.example`](.env.example)).
 
-从学术论文构建开放式科学问题数据集的核心流水线。
+```bash
+# 1. (Optional) build data from arXiv papers
+python data_generation/get_paper.py
+python data_generation/problem_generation/solve_dataset.py
 
-- **`get_paper.py`**：按月份遍历 arXiv `cs` 类别列表页，收集论文 ID 并批量下载 TeX 源码（`.tar.gz`），内置限速、重试与断点续传逻辑。
-- **`query_category.py`**：通过 arXiv API 查询每篇论文的主类别与全部类别，并合并写入输出的 JSON 文件；支持单篇查询与批量查询（自动跳过已存在输出）。
-- **`process_paper/`**：LaTeX 源码处理流水线。
-  - `merge_paper_latex.py`：解压并合并单篇论文的多个 LaTeX 源文件。
-  - `get_paper_body.py`：从 LaTeX 中提取正文内容（保留标题与摘要），并去除注释。
-  - `divide_paper.py`：按 `\section` 将论文正文分节，供后续逐节抽取信息。
-- **`problem_generation/`**：基于论文信息生成科学问题、参考答案与 Rubric。
-  - `solve_background.py`：逐节抽取论文的 `research_field` / `research_background` / `solution` / `experiment`，并整合为结构化背景信息。
-  - `solve_dataset.py`：完整方法-问题对生成（构建研究问题、参考答案、合并两类 Rubric）。
-  - `solve_design.py`：基于方法创新构造**实验设计**任务与参考答案、Rubric。
-  - `solve_innov.py`：基于背景信息构造**方法/创新**类研究问题与 Rubric。
+# 2. Stage 1 — rubric-conditioned OPSD
+bash opsd/scripts/run_opsd_8b.sh
 
-### `grpo/` — GRPO 强化学习训练
+# 3. Stage 2 — GRPO with rubric-as-reward
+bash grpo/scripts/grpo_1b_offline.sh
+```
 
-基于 Verl 框架的论文方法生成强化学习训练模块。
+See [opsd/README.md](opsd/README.md) and the per-module READMEs under `test/` for detailed instructions.
 
-- **`reward_fn/`**：离线打分奖励函数（`paper_rl_offline_*.py`），仅依赖静态评分标准与通用评分标准（不采用动态评分标准），对模型生成的方案逐条 Rubric 打分。
-- **`scripts/grpo_1b_offline.sh`**：GRPO 离线训练启动脚本，配置 Verl 的 `main_ppo`，包含 vLLM 采样、FSDP 分布式训练、自定义奖励函数等完整超参数。
-- **`data/`**：训练 / 验证数据集（Parquet 格式）。
+## 📢 News
 
-### `opsd/` — OPSD 自蒸馏训练框架
+- **`2026-08`**: Released the PaperGym pipeline, the **PaperGym-20k** corpus, the **PaperGym-Innov / PaperGym-Design** benchmarks, and the fine-tuned models on [Hugging Face](https://huggingface.co/CabbageWyh/PaperGym-Model). *(arXiv link will be added upon release.)*
 
-Open Source Distillation，基于 TRL 的类 GKD 自蒸馏训练框架。支持 vLLM 高速生成、多种教师策略（固定教师 / EMA / 动态）和可插拔的数据整理器。详细说明见 [opsd/README.md](opsd/README.md)。
+## ⭐ Citation
 
-- **训练入口**：`sft_train.py`（SFT）、`opsd_train.py`（主 OPSD）、`opsd_train_answer.py`（answer 模式）、`opsd_train_combine.py`（combine 模式）。
-- **核心 Trainer**：`opsd_trainer*.py`，实现 JSD 损失、KL 散度、vLLM 同步与 EMA / 固定教师策略。
-- **数据整理器**：`data_collator*.py`，构造学生 / 教师输入对。
-- **`scripts/`**：按模型规模（1B / 4B / 8B）组织的训练启动脚本。
+If you find PaperGym useful in your research, please consider citing:
 
-### `data/` — 顶层数据集
+```bibtex
+@misc{wang2026papergym,
+  title   = {PaperGym: Rubric-Centered Framework for Research-Plan Generation},
+  author  = {Yuhan Wang and Zhengxi Lu and Yuchen Yan and Kaitao Song and
+             Wenqi Zhang and Weiming Lu and Jun Xiao and Yueting Zhuang and
+             Yongliang Shen},
+  year    = {2026},
+  url     = {https://zju-real.github.io/PaperGym/},
+  note    = {arXiv ID to be added}
+}
+```
 
-存放汇总后的训练数据集（如 `merged_dataset_20k.parquet`）。
+## 🤝 Acknowledgements
 
-### `test/` — 评测与实验框架
-
-围绕 Rubric 驱动的回答生成、评分与分析展开的评测工具集。各模块均支持本地 vLLM 服务 / 远程 OpenAI 兼容 API 调用。
-
-- **`ResearchPlanGen/`**：ResearchPlanGen-ML 数据集的回答生成与 Rubric 评测，按研究目标生成 Proposed Research Plan 并逐项评分。
-- **`compare/`**：模型回答盲评对比工具，支持两模型 / 三模型随机分配 Plan A/B/C 让 LLM 评分，统计各模型胜率。
-- **`data_leakage/`**：数据集泄露检测，统一格式后用 LLM 判断每条 rubric 能否从问题中直接推断，统计泄露比例。
-- **`entropy/`**：通过 OpenAI 兼容 API 获取 top-logprobs，计算回答生成过程的 token 级熵（香农熵）并聚合统计。
-- **`OpenScience/`**：OpenScience（本文）数据集按领域分类（如 design、innov）生成响应并用 rubric 评分，可分类展示结果。
-- **`ResearchQA/`**：基于 ResearchQA 数据集的生成与评分框架，多线程生成回答，按 rubric 逐条评判并输出 5 级评分，含消融实验。
-- **`RubricHub/`**：基于 Rubric 的回答评分框架，支持生成回答、批量评分、可视化；含 `data_synthesis_final/` 子模块，实现"由粗到细的 Rubric 自动生成"流水线。
-- **`rubric_rate/`**：分析学术论文数据集中 Rubric 的类型构成占比（Method vs Experiment），自动分类并统计。
-- **`stability/`**：评测 LLM 评分稳定性，通过多轮独立评估分析评分一致性（均值 / 方差 / 标准差），并对比不同评分模型。
-
-## 使用说明
-
-各模块的具体运行方式见各自子目录内的 README 或运行脚本（`.sh`）。由于模型路径、数据集路径、API 地址等常因环境而异，多数脚本使用占位符（如 `<YOUR_MODEL_PATH>`、`/path/to/...`），使用前需按实际环境替换。
+This project builds on [verl](https://github.com/verl-project/verl), [vLLM](https://github.com/vllm-project/vllm), and [TRL](https://github.com/huggingface/trl). We thank the authors of these projects for their open-source contributions.

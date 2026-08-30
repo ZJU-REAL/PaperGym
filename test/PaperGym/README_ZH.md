@@ -1,4 +1,4 @@
-# OpenScience
+# PaperGym
 
 基于领域分类的模型响应生成与评分工具。
 

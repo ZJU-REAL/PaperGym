@@ -6,8 +6,8 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 # Configuration (kept consistent with run_compare.sh)
-API_KEY="${OPENSCIENCE_API_KEY:-}"
-BASE_URL="${OPENSCIENCE_BASE_URL:-http://your-api/v1}"
+API_KEY="${PAPERGYM_API_KEY:-}"
+BASE_URL="${PAPERGYM_BASE_URL:-http://your-api/v1}"
 # API_KEY="sk-xxx"
 # BASE_URL="http://xxx/"
 MODEL="DeepSeek-V4-Flash"

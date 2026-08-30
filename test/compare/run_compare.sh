@@ -3,8 +3,8 @@
 set -euo pipefail
 
 # ===================== Adjustable parameters =====================
-API_KEY="${OPENSCIENCE_API_KEY:-}"
-BASE_URL="${OPENSCIENCE_BASE_URL:-http://your-api/v1}"
+API_KEY="${PAPERGYM_API_KEY:-}"
+BASE_URL="${PAPERGYM_BASE_URL:-http://your-api/v1}"
 MODEL="glm-5.1"
 # MODEL="dashscope/qwen3.5-plus"
 # MODEL="kimi-k2.6"
