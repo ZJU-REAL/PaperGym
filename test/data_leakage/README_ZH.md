@@ -35,7 +35,7 @@ python test_mock.py
 - **Parquet 格式**:
   - `RubricHub_Science_800.parquet` (prompt + Rubrics/reward_model 格式)
   - `ResearchPlanGen_ml.parquet` / `ResearchPlanGen_arxiv.parquet` (Goal + Rubric 格式)
-  - `DuoSciPlan_*.parquet` (prompt + extra_info.merged_rubrics 格式)
+  - `PaperGym_*.parquet` (prompt + extra_info.merged_rubrics 格式)
   - `ai-co-scientist.parquet` (Goal + Rubric 格式)
 - **JSON 格式**:
   - `research_qa_test.json` (ResearchQA/data/)
@@ -50,7 +50,7 @@ python test_mock.py
 | `ResearchQATestMiniLoader` | 加载 research_qa_test_mini.json 格式 |
 | `HealthBenchJsonlLoader` | 加载 HealthBench.jsonl 格式 |
 | `AICoScientistParquetLoader` | 加载 ai-co-scientist.parquet 格式 |
-| `DuoSciPlanParquetLoader` | 加载 DuoSciPlan_*.parquet 格式 |
+| `PaperGymParquetLoader` | 加载 PaperGym_*.parquet 格式 |
 | `EvalSetScienceParquetLoader` | 加载 eval_set_Science_800.parquet 格式 |
 
 ## 依赖

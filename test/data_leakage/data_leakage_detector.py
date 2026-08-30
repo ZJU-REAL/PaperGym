@@ -13,7 +13,7 @@ Refer to the batch processing pattern in test/ResearchQA/compute_coverage_ds.py:
 Supported datasets:
 - RubricHub_Science_800.parquet (prompt + Rubrics/reward_model format)
 - ResearchPlanGen_ml.parquet / ResearchPlanGen_arxiv.parquet (Goal + Rubric format)
-- DuoSciPlan_20k.parquet / DuoSciPlan_design.parquet / DuoSciPlan_innov.parquet (prompt + extra_info.merged_rubrics format)
+- PaperGym_20k.parquet / PaperGym_20k_Design.parquet / PaperGym_20k_Innov.parquet (prompt + extra_info.merged_rubrics format)
 - ai-co-scientist.parquet (Goal + Rubric format)
 - research_qa_test.json (ResearchQA/data/)
 """
@@ -249,8 +249,8 @@ class AICoScientistParquetLoader(DataLoader):
         return results
 
 
-class DuoSciPlanParquetLoader(DataLoader):
-    """Load DuoSciPlan_*.parquet format dataset
+class PaperGymParquetLoader(DataLoader):
+    """Load PaperGym_*.parquet format dataset
 
     Column structure:
     - prompt: numpy array of {content, role} dicts (question text)
@@ -306,7 +306,7 @@ class DuoSciPlanParquetLoader(DataLoader):
                 if "index" in extra_info:
                     source_id = f"{source_id}_{extra_info['index']}" if source_id else str(extra_info["index"])
             if not source_id:
-                source_id = f"duosci_row{idx}"
+                source_id = f"papergym_row{idx}"
 
             results.append({
                 "question": question,
@@ -381,8 +381,8 @@ def get_loader_for_dataset(file_path: str) -> DataLoader:
             return AICoScientistParquetLoader(file_path)
         if "Rubrics" in cols:  # eval_set format: prompt + Rubrics/reward_model
             return EvalSetScienceParquetLoader(file_path)
-        if "extra_info" in cols:  # DuoSciPlan format: prompt + extra_info.merged_rubrics
-            return DuoSciPlanParquetLoader(file_path)
+        if "extra_info" in cols:  # PaperGym format: prompt + extra_info.merged_rubrics
+            return PaperGymParquetLoader(file_path)
         return CSNewParquetLoader(file_path)
     elif ext == ".jsonl":
         return HealthBenchJsonlLoader(file_path)
@@ -789,9 +789,9 @@ def main():
             # os.path.join(DEFAULT_DATASET_DIR, "RubricHub_Science_800.parquet"),
             # os.path.join(DEFAULT_DATASET_DIR, "ResearchPlanGen_ml.parquet"),
             # os.path.join(DEFAULT_DATASET_DIR, "ResearchPlanGen_arxiv.parquet"),
-            # os.path.join(DEFAULT_DATASET_DIR, "DuoSciPlan_20k.parquet"),
-            # os.path.join(DEFAULT_DATASET_DIR, "DuoSciPlan_design.parquet"),
-            # os.path.join(DEFAULT_DATASET_DIR, "DuoSciPlan_innov.parquet"),
+            # os.path.join(DEFAULT_DATASET_DIR, "PaperGym_20k.parquet"),
+            # os.path.join(DEFAULT_DATASET_DIR, "PaperGym_20k_Design.parquet"),
+            # os.path.join(DEFAULT_DATASET_DIR, "PaperGym_20k_Innov.parquet"),
             # os.path.join(DEFAULT_DATASET_DIR, "cs_new.parquet"),
             # os.path.join(DEFAULT_DATASET_DIR, "research_qa_test.json"),
             os.path.join(DEFAULT_DATASET_DIR, "HealthBench_800.jsonl"),
