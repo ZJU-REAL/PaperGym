@@ -1,0 +1,233 @@
+import torch
+
+GENERAL_RUBRICS = [
+    "HANDLES ALL CRITERIA: Does the plan satisfy all criteria mentioned in the rubric item? An exception is if the criteria says \"such as\", \"for example\", or \"including\", the response does not have to include the same examples listed to meet the criteria, but whatever is provided must be valid and reasonable.",
+    "DETAILED, SPECIFIC SOLUTION: Does the part of the plan relevant to satisfying this rubric item include fully specified details on HOW to implement it? There should be no self-proclaimed claims of handling something without doing so. There should be no vague terms, ambiguity, or lack of clarity. It should be described in simple to understand language.",
+    "NO OVERLOOKED FLAWS OR WEAKNESSES: Are there any important overlooked flaws or weaknesses in the part of the plan addressing this rubric item that invalidate its satisfaction of the rubric item?",
+    "WELL JUSTIFIED RATIONALE: Is the part of the plan relevant to this grading item well-motivated and justified? For example, are there convincing arguments provided for how the plan handles this grading item is better than simpler solutions or alternate hypotheses?",
+    "COST AND EFFORT EFFICIENT: Does the plan handle this rubric item cost efficiently, without being unnecessarily complex? Check if a solution requiring less human effort or resources would be equally effective for this rubric item.",
+    "NO ETHICAL ISSUES: Does this part of the plan have any potential for negative consequences, or is it ethically problematic?",
+    "CONSISTENT WITH OVERALL PLAN: Is this part of the plan consistent with the overall approach?"
+]
+
+
+class SelfDistillationDataCollator:
+    """
+    Data collator for self-distillation that creates both student and teacher inputs.
+
+    Student: sees only the problem (with chat template)
+    Teacher: sees problem + solution + transition prompt (with chat template)
+
+    To enable batch-level operations (like original GKD), we pad prompts to the same length
+    within each batch, and track the actual (unpadded) prompt lengths for loss masking.
+    """
+
+    def __init__(self, tokenizer, max_length=2048, reason_first=True):
+        self.tokenizer = tokenizer
+        self.max_length = max_length
+        self.reason_first = reason_first
+
+        # Prompt for reasoning about the solution before teaching
+        self.reason_first_prompt = (
+            "\n\nThe reference reasoning above arrives at the correct answer. "
+            "Please analyze this solution and explain the key reasoning steps and problem-solving strategies employed. "
+            "Do NOT use <think> tags. Do NOT derive your own solution. "
+            "Simply analyze and explain the reference solution provided above.\n"
+        )
+        # Prompt for transitioning to teaching mode after reasoning
+        self.transition_prompt = (
+            "\n\nAfter reading the reference solution above, make sure you truly understand "
+            "the reasoning behind each step — do not copy or paraphrase it. Now, using your "
+            "own words and independent reasoning, derive the same final answer to the problem above. "
+            "Think step by step, explore different approaches, and don't be afraid to backtrack "
+            "or reconsider if something doesn't work out:\n"
+        )
+
+        # Set padding side explicitly for consistency
+        print(f"[DataCollator] Original padding_side: {self.tokenizer.padding_side}")
+        self.tokenizer.padding_side = "right"
+        print(f"[DataCollator] Set padding_side to: {self.tokenizer.padding_side}")
+        print(f"[DataCollator] Reason first mode: {self.reason_first}")
+
+    def __call__(self, features):
+
+        batch_size = len(features)
+
+        # Prepare student and teacher prompts using chat template (matching evaluation)
+        student_prompts = []
+        teacher_prompts = []
+        teacher_reasoning_prompts = []  # NEW: for reason_first mode
+
+        for feature in features:
+            # Extract problem and solution from dataset
+            # Handle different possible column names
+            problem = feature["problem"]
+            # solution = ""
+            solution = feature["solution"]["reference_answer"]
+            static_rubrics = feature["solution"]["rubrics"]
+            # static_rubrics = feature["solution"]["merged_rubrics"]
+
+            general_rubrics = [
+                {"id": i+1, "description": rubric, "weight": 1}
+                for i, rubric in enumerate(GENERAL_RUBRICS)
+            ]
+
+            final_rubrics = general_rubrics + static_rubrics
+
+            rubrics_text = "\n".join([
+                f"{i+1}. {rubric.get('description', rubric) if isinstance(rubric, dict) else rubric}"
+                for i, rubric in enumerate(final_rubrics)
+            ])
+
+            # print(rubrics_text, flush=True)
+
+            # Student prompt: just the problem with instruction (matching evaluation format)
+            student_user_message = f"Problem: {problem}\n\nPlease reason step by step, and put your final answer within \\boxed{{}}."
+            student_messages = [{"role": "user", "content": student_user_message}]
+
+            # Apply chat template for student (matching evaluation)
+            student_prompt = self.tokenizer.apply_chat_template(
+                student_messages, tokenize=False, add_generation_prompt=True, enable_thinking=False
+            )
+            student_prompts.append(student_prompt)
+
+            if self.reason_first:
+                # Reasoning prompt: ask teacher to analyze the solution
+                reasoning_user_message = (
+                    f"Problem: {problem}\n\n"
+                    f"Here is a correct reasoning to this problem:"
+                    f"=== Reference Reasoning Start ===\n"
+                    f"{solution}\n"
+                    f"=== Reference Reasoning End ===\n\n"
+                    f"{self.reason_first_prompt}"
+                )
+                reasoning_messages = [{"role": "user", "content": reasoning_user_message}]
+                reasoning_prompt = self.tokenizer.apply_chat_template(
+                    reasoning_messages, tokenize=False, add_generation_prompt=True
+                )
+                teacher_reasoning_prompts.append(reasoning_prompt)
+
+                # Teacher prompt will be constructed during training after reasoning
+                # For now, create placeholder (will be replaced in training_step)
+                teacher_prompts.append("")  # Placeholder
+            else:
+                # Original teacher prompt (unchanged)
+                # teacher_user_message = (
+                #     f"Problem: {problem}\n\n"
+                #     f"Here is a reference rubric to this problem, which is used to evaluate the solution:\n"
+                #     f"=== Reference Rubric Begin ===\n{rubrics_text}\n=== Reference Rubric End ===\n"
+                #     f"Here is a reference solution to this problem:\n"
+                #     f"=== Reference Solution Begin ===\n{solution}\n=== Reference Solution End ===\n"
+                #     f"{self.transition_prompt}\n"
+                #     f"Please reason step by step, and put your final answer within \\boxed{{}}."
+                # )
+                teacher_user_message = (
+                    f"Problem: {problem}\n\n"
+                    f"Here is a reference rubric to this problem, which is used to evaluate the solution of the problem:\n"
+                    f"=== Reference Rubric Begin ===\n{rubrics_text}\n=== Reference Rubric End ===\n"
+                    f"{self.transition_prompt}\n"
+                    f"Please reason step by step, and put your final answer within \\boxed{{}}."
+                )
+                teacher_messages = [{"role": "user", "content": teacher_user_message}]
+
+                # Apply chat template for teacher
+                teacher_prompt = self.tokenizer.apply_chat_template(
+                    teacher_messages, tokenize=False, add_generation_prompt=True, enable_thinking=True
+                )
+                teacher_prompts.append(teacher_prompt)
+
+        # Tokenize WITHOUT padding first to get true lengths
+        student_encoded_no_pad = self.tokenizer(
+            student_prompts,
+            padding=False,
+            truncation=True,
+            max_length=self.max_length,
+        )
+        student_prompt_lengths = [len(ids) for ids in student_encoded_no_pad["input_ids"]]
+
+        # Find max lengths in this batch
+        max_student_prompt_len = max(student_prompt_lengths)
+
+        # Tokenize WITH padding to max length in batch
+        student_encoded = self.tokenizer(
+            student_prompts,
+            padding="max_length",
+            truncation=True,
+            max_length=max_student_prompt_len,
+            return_tensors="pt",
+        )
+
+        result = {
+            "student_prompts": student_encoded["input_ids"],
+            "student_prompt_attention_mask": student_encoded["attention_mask"],
+            "student_prompt_length": max_student_prompt_len,  # Single value for batch!
+            # Keep individual lengths for proper masking
+            "student_prompt_lengths_per_example": torch.tensor(student_prompt_lengths),
+        }
+
+        if self.reason_first:
+            # Tokenize reasoning prompts
+            reasoning_encoded_no_pad = self.tokenizer(
+                teacher_reasoning_prompts,
+                padding=False,
+                truncation=True,
+                max_length=self.max_length,
+            )
+            reasoning_prompt_lengths = [len(ids) for ids in reasoning_encoded_no_pad["input_ids"]]
+            max_reasoning_prompt_len = max(reasoning_prompt_lengths)
+
+            reasoning_encoded = self.tokenizer(
+                teacher_reasoning_prompts,
+                padding="max_length",
+                truncation=True,
+                max_length=max_reasoning_prompt_len,
+                return_tensors="pt",
+            )
+
+            # Tokenize transition prompt (this will be appended after reasoning)
+            # Don't use chat template here - just the raw text
+            transition_text = f"\n{self.transition_prompt}\nPlease reason step by step, and put your final answer within \\boxed{{}}."
+            transition_encoded = self.tokenizer(
+                [transition_text] * batch_size,
+                padding=False,
+                truncation=False,
+                return_tensors="pt",
+            )
+
+            result.update(
+                {
+                    "teacher_reasoning_prompts": reasoning_encoded["input_ids"],
+                    "teacher_reasoning_attention_mask": reasoning_encoded["attention_mask"],
+                    "teacher_reasoning_prompt_length": max_reasoning_prompt_len,
+                    "teacher_transition_tokens": transition_encoded["input_ids"],
+                }
+            )
+        else:
+            # Normal mode: tokenize teacher prompts
+            teacher_encoded_no_pad = self.tokenizer(
+                teacher_prompts,
+                padding=False,
+                truncation=True,
+                max_length=self.max_length,
+            )
+            teacher_prompt_lengths = [len(ids) for ids in teacher_encoded_no_pad["input_ids"]]
+            max_teacher_prompt_len = max(teacher_prompt_lengths)
+
+            teacher_encoded = self.tokenizer(
+                teacher_prompts,
+                padding="max_length",
+                truncation=True,
+                max_length=max_teacher_prompt_len,
+                return_tensors="pt",
+            )
+
+            result.update(
+                {
+                    "teacher_prompts": teacher_encoded["input_ids"],
+                    "teacher_prompt_attention_mask": teacher_encoded["attention_mask"],
+                    "teacher_prompt_length": max_teacher_prompt_len,
+                    "teacher_prompt_lengths_per_example": torch.tensor(teacher_prompt_lengths),
+                }
+            )
+
+        return result

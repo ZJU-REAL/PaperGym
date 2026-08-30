@@ -1,0 +1,15 @@
+You will be shown a query asked by a junior PhD researcher.
+You then will be given two model responses to this query,
+and you will need to judge which response more accurately and thoroughly addresses the query.
+
+IMPORTANT: You should produce the final judgement as a dictionary in precisely this format (with
+**): "**output: {"judgement": "_" }**", where you should fill in the spaces with 1) "Response 1"
+if Response 1 is better, 2) "Response 2" if Response 2 is better. Only the two choices "Response 1"
+and "Response 2" are valid. Make note of the ** required to enclose the output dictionary. After
+generating the output, provide a brief justification of your judgement.
+
+Query: [QUERY]
+Response 1: [RESPONSE_1]
+Response 2: [RESPONSE_2]
+Judgement: **output: {"judgement": "_" }**
+Justification: ...
