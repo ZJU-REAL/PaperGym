@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PaperGym: Rubric-Centered Evolution for Research-Plan Generation</title>
-<meta name="description" content="PaperGym is a low-leakage benchmark for research-plan generation, built with a four-stage knowledge-extraction pipeline and dual-dimension instance-specific rubrics, validated through rubric-conditioned OPSD + GRPO training.">
+<meta name="description" content="PaperGym is a low-leakage benchmark for research-plan generation that pairs a data-generation pipeline with two-stage rubric-based training (OPSD + GRPO).">
 <meta property="og:title" content="PaperGym: Rubric-Centered Evolution for Research-Plan Generation">
-<meta property="og:description" content="A low-leakage benchmark for research-plan generation with knowledge extraction and dual-dimension rubric synthesis.">
+<meta property="og:description" content="A low-leakage corpus and two-stage rubric-based training for research-plan generation.">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://zju-real.github.io/PaperGym/">
 <meta property="og:image" content="https://zju-real.github.io/PaperGym/images/framework.png">
@@ -208,7 +208,7 @@
   .content p { margin: 0 0 16px; }
 
   /* ---------------- Highlights ---------------- */
-  .highlights { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+  .highlights { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 18px; }
 
   .highlight-card {
     min-height: 168px;
@@ -612,14 +612,7 @@
       <span class="g-mark">Research-Plan Generation</span></p>
 
     <p class="authors">
-      Author 1<sup>1,*</sup>, Author 2<sup>1</sup>, Author 3<sup>1,2</sup>, Author 4<sup>1,†</sup>
-    </p>
-    <p class="affiliations">
-      <sup>1</sup>Affiliation 1 &nbsp;&nbsp;
-      <sup>2</sup>Affiliation 2
-    </p>
-    <p class="note">
-      <sup>*</sup>Equal contribution &nbsp;&nbsp; <sup>†</sup>Corresponding author
+      Yuhan Wang · Zhengxi Lu · Yuchen Yan · Kaitao Song · Wenqi Zhang · Weiming Lu · Jun Xiao · Yueting Zhuang · Yongliang Shen
     </p>
     <p class="venue">Preprint · 2026</p>
 
@@ -653,24 +646,20 @@
       <h2>Abstract</h2>
       <div class="content">
         <p>
-          The Rubric-as-Rewards paradigm has become a prevalent strategy for enhancing the research-plan
-          generation capability of large language models (LLMs). However, existing scientific task datasets
-          commonly suffer from <strong>data contamination</strong>, <strong>evaluation bias</strong>, and
-          <strong>insufficient domain specialization</strong>, resulting in an inadequate training corpus
-          and limited training effectiveness. To address these challenges, we propose <strong>PaperGym</strong>,
-          a benchmark featuring a four-stage knowledge extraction pipeline that decouples research questions
-          from reference solutions, together with a dual-dimensional rubric construction strategy that evaluates
-          proposals along the complementary dimensions of <em>methodological innovation</em> and
-          <em>experimental design</em>. We further validate the quality of the constructed dataset through a
-          two-stage training framework that couples <em>On-Policy Self-Distillation</em> (OPSD) with
-          <em>Group Relative Policy Optimization</em> (GRPO).
+          Rubric-as-reward training is a prevalent strategy for improving research-plan generation in LLMs,
+          but existing rubric-based datasets suffer from <strong>data contamination</strong>,
+          <strong>evaluation bias</strong>, and <strong>insufficient domain specialization</strong>. We propose
+          <strong>PaperGym</strong>, a low-leakage benchmark that turns each arXiv paper into a training
+          environment: a four-stage extraction pipeline decouples research questions from reference answers,
+          and dual-dimensional rubrics evaluate proposals along <em>methodological innovation</em> and
+          <em>experimental design</em>. The same rubrics are reused in a two-stage
+          <strong>rubric-centered</strong> scheme — rubric-conditioned <em>OPSD</em> followed by
+          <em>GRPO</em> with rubric-as-rewards.
         </p>
         <p>
-          Experiments show that models trained with our framework achieve significant and consistent
-          improvements on in-domain test sets (<b>PaperGym-Innov</b> and <b>PaperGym-Design</b>) as well
-          as on the external benchmarks ResearchQA, ResearchPlanGen-ML, and RubricHub Science — with the
-          fine-tuned <b>Qwen3-8B performing close to proprietary models on ResearchQA</b> (73.48) and
-          <b>surpassing the substantially larger model Kimi K2.6</b> (73.19).
+          PaperGym keeps criterion leakage at only <strong>3.7%</strong>. Models trained on it improve by
+          <strong>+5.6 / +5.0 / +4.8</strong> over their bases on Qwen3-1.7B / 4B / 8B, and the fine-tuned
+          <strong>Qwen3-8B reaches 73.48 on ResearchQA</strong>, surpassing the much larger Kimi K2.6 (73.19).
         </p>
       </div>
     </div>
@@ -680,25 +669,29 @@
     <div class="container">
       <h2>Highlights</h2>
       <p class="section-lead">
-        Existing rubric-based benchmarks suffer from data contamination, evaluation bias, and limited
-        domain specialization. PaperGym addresses all three at their source.
+        Existing rubric-based benchmarks suffer from contamination, evaluation bias, and limited domain
+        specialization. PaperGym addresses all three at their source.
       </p>
       <div class="highlights">
         <div class="highlight-card">
-          <div class="highlight-number">3.73%</div>
-          <div class="highlight-text">Data leakage — roughly 3–9× lower than existing benchmarks (11.90%–34.10%).</div>
+          <div class="highlight-number">3.7%</div>
+          <div class="highlight-text">Criterion leakage — roughly 3–9× lower than existing rubric-based benchmarks (12%–34%).</div>
         </div>
         <div class="highlight-card">
           <div class="highlight-number">20,000</div>
           <div class="highlight-text">Instances in PaperGym-20k across five domains, with held-out Innov / Design test sets.</div>
         </div>
         <div class="highlight-card">
+          <div class="highlight-number" style="font-size: 27px;">+5.6 / +5.0 / +4.8</div>
+          <div class="highlight-text">Average gains over base models for Qwen3-1.7B / 4B / 8B — beating SFT, either stage alone, and the reversed ordering.</div>
+        </div>
+        <div class="highlight-card">
           <div class="highlight-number">73.48</div>
-          <div class="highlight-text">ResearchQA score with fine-tuned Qwen3-8B, surpassing the larger Kimi K2.6 (73.19).</div>
+          <div class="highlight-text">ResearchQA score with fine-tuned Qwen3-8B, surpassing the much larger Kimi K2.6 (73.19).</div>
         </div>
         <div class="highlight-card">
           <div class="highlight-number">58.1%</div>
-          <div class="highlight-text">Win rate on ResearchPlanGen-ML, vs. 28.2% for RubricHub-trained and 13.7% for the base model.</div>
+          <div class="highlight-text">Win rate in three-way blind comparisons on ResearchPlanGen-ML, vs. 28.2% for a RubricHub-trained baseline.</div>
         </div>
       </div>
     </div>
@@ -708,9 +701,8 @@
     <div class="container">
       <h2>Method · Data Generation</h2>
       <p class="section-lead">
-        A four-stage knowledge-extraction pipeline decomposes each paper into disjoint sections, then
-        synthesizes questions and reference answers from <em>non-overlapping</em> sources — eliminating
-        contamination at its origin.
+        Each paper is decomposed into disjoint sections; questions and reference answers are synthesized from
+        <em>non-overlapping</em> sources — eliminating contamination at its origin.
       </p>
 
       <div class="figure-block wide">
@@ -759,7 +751,7 @@
       <h2>Rubric-Centered Training</h2>
       <p class="section-lead">
         Both training stages are supervised by the same rubrics and together form a
-        <strong>teach–explore</strong> paradigm: OPSD warms up with dense token-level guidance, then
+        <strong>rubric-centered</strong> paradigm: OPSD warms up with dense token-level guidance, then
         GRPO explores toward high-reward regions using the rubrics as rewards.
       </p>
 
@@ -807,18 +799,15 @@
       <h2>Dataset</h2>
       <div class="content">
         <p>
-          PaperGym-20k is built from publicly available arXiv papers, extracting plain-text LaTeX source for
-          cleaner content than rendered PDFs. The training set comprises ~10,000 computer-science papers
-          published between January 2015 and December 2025. Each paper is decomposed into <b>four stages</b> —
-          Research Goal, Background, Research Method, and Experimental Design (the latter excluding concrete
-          numerical results to prevent spurious memorization) — via a <b>map-reduce</b> procedure using
-          Qwen3-235B-A22B.
+          PaperGym-20k is built from publicly available arXiv papers (plain-text LaTeX, cleaner than rendered
+          PDFs) — ~10,000 computer-science papers from January 2015 to December 2025. Each paper is decomposed
+          into <b>four stages</b> — Research Goal, Background, Research Method, and Experimental Design (excluding
+          concrete numerical results) — via a <b>map-reduce</b> procedure using Qwen3-235B-A22B.
         </p>
         <p>
-          This decomposition is what makes the benchmark low-leakage: the research question is synthesized from
-          the <b>Research Goal and Background</b>, and the reference answer from the <b>Research Method and
-          Experimental Design</b>. Because the two are drawn from <b>disjoint paper sections</b>, data
-          contamination is prevented at its source.
+          This decomposition is what makes the benchmark low-leakage: the question is synthesized from the
+          <b>Research Goal + Background</b>, and the reference answer from the <b>Research Method + Experimental
+          Design</b> — <b>disjoint sections</b>, so contamination is prevented at its source.
         </p>
       </div>
 
@@ -833,21 +822,19 @@
       </div>
 
       <div class="info-box">
-        <b>Held-out test sets.</b> <b>PaperGym-Innov</b> derives the question from Research Goal + Background,
-        uses Research Method as the reference answer, and scores along the <em>innovation</em> dimension.
-        <b>PaperGym-Design</b> additionally incorporates Research Method into the question, uses Experimental
-        Design as the reference answer, and scores along the <em>design</em> dimension. Both sample 400 papers
-        per domain (cs, econ, physics) released after January 2026, with two instances per paper. Among the
-        specialized rubrics, <b>63.8% of criteria target Method</b> and <b>36.2% target Experiment</b>;
-        four scoring models were verified to be highly self-consistent across five independent runs, with the
-        small Qwen3-8B reaching nearly 80% agreement with Kimi K2.6.
+        <b>Held-out test sets.</b> <b>PaperGym-Innov</b> scores along the <em>innovation</em> dimension (question
+        from Research Goal + Background, reference from Research Method); <b>PaperGym-Design</b> scores along the
+        <em>design</em> dimension (question adds Research Method, reference from Experimental Design). Both sample
+        400 papers per domain (cs, econ, physics) released after January 2026, two instances each. Rubric criteria
+        split <b>63.8% Method</b> / <b>36.2% Experiment</b>; four scoring models are highly self-consistent across
+        runs, with the small Qwen3-8B reaching ~80% agreement with Kimi K2.6.
       </div>
 
       <h2 style="margin-top:44px">Data Leakage</h2>
       <p class="section-lead">
-        An LLM judge checks whether each rubric criterion can be directly inferred from the research question
-        alone. The four-stage decomposition suppresses spurious correlations between input and target, keeping
-        leakage at only <strong>3.73%</strong> — roughly a <strong>3–9× reduction</strong> over existing benchmarks.
+        An LLM judge checks whether each rubric criterion is directly inferable from the question alone. The
+        four-stage decomposition keeps leakage at only <strong>3.7%</strong> — roughly a
+        <strong>3–9× reduction</strong> over existing benchmarks.
       </p>
       <div class="table-card narrow">
         <table class="data">
@@ -872,74 +859,27 @@
     <div class="container">
       <h2>Main Results</h2>
       <p class="section-lead">
-        The OPSD + GRPO scheme achieves the highest score on every test set at every scale, improving the average
-        score by <b>+5.56 / +5.04 / +4.81</b> on Qwen3-1.7B / 4B / 8B over the untrained base models. In contrast,
-        SFT merely imitates the single reference answer, collapsing the output distribution into a narrow mode —
-        and among general-purpose LLMs, the fine-tuned <b>Qwen3-8B surpasses Kimi K2.6 on ResearchQA</b> (73.48
-        vs. 73.19).
+        OPSD + GRPO achieves the best score on every test set at every scale — improving the average by
+        <b>+5.6 / +5.0 / +4.8</b> over the base models on Qwen3-1.7B / 4B / 8B — and the fine-tuned
+        <b>Qwen3-8B surpasses Kimi K2.6 on ResearchQA</b> (73.48 vs. 73.19).
       </p>
 
-      <div class="table-card">
-        <table class="data">
-          <thead>
-            <tr>
-              <th style="text-align:left">Model</th>
-              <th>RubricHub<br>Science</th>
-              <th>ResearchPlan<br>-Gen ML</th>
-              <th>ResearchQA</th>
-              <th>Innov</th>
-              <th>Design</th>
-              <th>Avg</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr class="group"><td colspan="7">Proprietary Models</td></tr>
-            <tr><td>Qwen3.5-Plus</td><td>63.74</td><td>47.32</td><td>75.12</td><td>27.28</td><td>27.07</td><td>48.11</td></tr>
-            <tr><td>GLM-5.1</td><td class="best">63.93</td><td>51.89</td><td>78.69</td><td>30.44</td><td>28.73</td><td>50.74</td></tr>
-            <tr><td>Claude-Sonnet-5</td><td>60.10</td><td>60.03</td><td>66.04</td><td>36.17</td><td class="best">39.63</td><td>52.39</td></tr>
-            <tr><td>Kimi K2.6</td><td>63.31</td><td>54.49</td><td>73.19</td><td>31.12</td><td>36.07</td><td>51.64</td></tr>
-            <tr><td>DeepSeek-V4-Flash</td><td>62.04</td><td>52.97</td><td class="best">79.59</td><td>29.82</td><td>37.74</td><td>52.43</td></tr>
-            <tr><td>GPT-5.1</td><td>63.75</td><td class="best">61.66</td><td>76.52</td><td class="best">36.59</td><td>34.11</td><td class="best">54.53</td></tr>
-
-            <tr class="group"><td colspan="7">Rubric-based Models</td></tr>
-            <tr><td>Intern-S1-Mini</td><td>42.69</td><td>18.43</td><td>68.60</td><td>7.48</td><td>4.48</td><td>28.34</td></tr>
-            <tr><td>Rebicon-Preview</td><td>56.83</td><td>25.40</td><td class="best">76.59</td><td>20.88</td><td>20.42</td><td>40.02</td></tr>
-            <tr><td>S1-VL-RL</td><td class="best">57.77</td><td class="best">29.23</td><td>72.09</td><td class="best">22.31</td><td class="best">23.68</td><td class="best">41.02</td></tr>
-
-            <tr class="group"><td colspan="7">PaperGym-Trained Models</td></tr>
-            <tr><td>Qwen3-1.7B</td><td>31.84</td><td>4.89</td><td>55.14</td><td>10.76</td><td>8.58</td><td>22.24</td></tr>
-            <tr><td>… w/ SFT</td><td>31.95</td><td>5.85</td><td>57.36</td><td>11.88</td><td>8.50</td><td>23.11</td></tr>
-            <tr><td>… w/ OPSD</td><td>34.31</td><td>6.75</td><td>60.61</td><td>14.16</td><td>10.45</td><td>25.26</td></tr>
-            <tr><td>… w/ GRPO</td><td>31.62</td><td>5.34</td><td>55.67</td><td>11.47</td><td>8.60</td><td>22.54</td></tr>
-            <tr class="pipeline"><td>… w/ OPSD + GRPO</td><td class="best">34.90</td><td class="best">8.37</td><td class="best">65.93</td><td class="best">17.38</td><td class="best">12.45</td><td class="best">27.81</td></tr>
-            <tr><td>Qwen3-4B</td><td>41.97</td><td>13.48</td><td>63.15</td><td>16.12</td><td>13.89</td><td>29.72</td></tr>
-            <tr><td>… w/ SFT</td><td>41.57</td><td>12.14</td><td>64.87</td><td>17.90</td><td>15.04</td><td>30.30</td></tr>
-            <tr><td>… w/ OPSD</td><td>44.03</td><td>15.71</td><td>66.93</td><td>18.98</td><td>15.06</td><td>32.03</td></tr>
-            <tr><td>… w/ GRPO</td><td>43.64</td><td>13.60</td><td>66.97</td><td>18.57</td><td>15.95</td><td>31.75</td></tr>
-            <tr class="pipeline"><td>… w/ OPSD + GRPO</td><td class="best">45.15</td><td class="best">16.93</td><td class="best">70.74</td><td class="best">22.81</td><td class="best">18.19</td><td class="best">34.76</td></tr>
-            <tr><td>Qwen3-8B</td><td>46.07</td><td>20.28</td><td>66.65</td><td>18.69</td><td>17.03</td><td>33.74</td></tr>
-            <tr><td>… w/ SFT</td><td>45.29</td><td>17.91</td><td>67.53</td><td>17.52</td><td>15.68</td><td>32.79</td></tr>
-            <tr><td>… w/ OPSD</td><td>47.41</td><td>23.17</td><td>69.17</td><td>21.42</td><td>18.04</td><td>35.84</td></tr>
-            <tr><td>… w/ GRPO</td><td>48.09</td><td>20.76</td><td>71.02</td><td>20.26</td><td>19.17</td><td>35.86</td></tr>
-            <tr class="pipeline"><td>… w/ OPSD + GRPO</td><td class="best">49.41</td><td class="best">23.53</td><td class="best">73.48</td><td class="best">24.47</td><td class="best">21.88</td><td class="best">38.55</td></tr>
-          </tbody>
-        </table>
+      <div class="figure-block">
+        <img src="images/table.png" alt="Main results across model scales and training strategies">
+        <p class="caption">
+          <strong>Table 1.</strong> Main results across model scales and training strategies on RubricHub Science,
+          ResearchPlanGen-ML, ResearchQA, and the in-domain PaperGym-Innov / PaperGym-Design test sets.
+          Best result per column within each section is highlighted; shaded rows are the full OPSD + GRPO pipeline.
+          All Qwen3 base models are evaluated in thinking mode.
+        </p>
       </div>
-      <p class="table-note">
-        <b>Table 1.</b> Main results across model scales and training strategies on RubricHub Science,
-        ResearchPlanGen-ML, ResearchQA, and the in-domain PaperGym-Innov / PaperGym-Design test sets.
-        Best result per column within each section is highlighted; shaded rows are the full OPSD + GRPO pipeline.
-        All Qwen3 base models are evaluated in thinking mode.
-      </p>
 
       <h2 style="margin-top:52px">Win-Rate Evaluation</h2>
       <p class="section-lead">
-        On ResearchPlanGen-ML — a benchmark independent of all training data — an LLM judge selects the best of
-        three models sharing the same training regimen: the baseline trained on <strong>PaperGym-20k</strong>,
-        the baseline trained on <strong>RubricHub Science</strong>, and the <strong>untrained base model</strong>.
-        The PaperGym-trained model wins <strong>58.1% of Overall Score</strong> comparisons (vs. 28.2% for its
-        RubricHub-trained counterpart and 13.7% for the base model), demonstrating the value of rubric-centric
-        data construction.
+        On ResearchPlanGen-ML — independent of all training data — a judge compares three models sharing the same
+        training regimen: trained on <strong>PaperGym-20k</strong>, trained on <strong>RubricHub Science</strong>,
+        and the <strong>untrained base</strong>. The PaperGym-trained model wins <strong>58.1% of Overall Score</strong>
+        comparisons (vs. 28.2% for RubricHub-trained and 13.7% for the base model).
       </p>
 
       <div class="carousel-block">

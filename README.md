@@ -27,12 +27,11 @@ PaperGym couples a **data-generation** pipeline that turns each paper into a low
 ## 📦 Released Resources
 
 | Type | Description | Link |
-|:---|:---|:---|
-| **Model** | Fine-tuned models (produced via OPSD / GRPO training) | [CabbageWyh/PaperGym-Model](https://huggingface.co/CabbageWyh/PaperGym-Model) |
-| **Corpus & Benchmarks** | **PaperGym-20k** (20,000 instances) with held-out test sets **PaperGym-Innov** / **PaperGym-Design** | [CabbageWyh/PaperGym-Data](https://huggingface.co/datasets/CabbageWyh/PaperGym-Data) |
-| **Code** | Complete pipeline: data generation, OPSD / GRPO training, and the evaluation suite (this repository) | This repository |
-| **PaperGym-Innov**  | Benchmark for Methodological innovation | `test/PaperGym/data/innov.parquet`  |
-| **PaperGym-Design** | Benchmark for Experimental design       | `test/PaperGym/data/design.parquet` |
+| :---: | :--- | :--- |
+| 🧠 **Model** | Fine-tuned models produced via **OPSD / GRPO** training | [![PaperGym-Model](https://img.shields.io/badge/Model-PaperGym--Model-orange?style=flat&logo=huggingface&logoColor=white)](https://huggingface.co/CabbageWyh/PaperGym-Model) |
+| 📚 **Corpus** | **PaperGym-20k** — 20,000 training instances across five domains | [![PaperGym-Data](https://img.shields.io/badge/Dataset-PaperGym--20k-green?style=flat&logo=huggingface&logoColor=white)](https://huggingface.co/datasets/CabbageWyh/PaperGym-Data) |
+| 🎯 **Benchmarks** | Held-out test sets **PaperGym-Innov** (methodological innovation) & **PaperGym-Design** (experimental design), also on Hugging Face | [![PaperGym-Data](https://img.shields.io/badge/Dataset-PaperGym--20k-green?style=flat&logo=huggingface&logoColor=white)](https://huggingface.co/datasets/CabbageWyh/PaperGym-Data)<br>`test/PaperGym/data/innov.parquet` · `test/PaperGym/data/design.parquet` |
+| 💻 **Code** | Complete pipeline: data generation, **OPSD / GRPO** training, and the evaluation suite | This repository |
 
 
 ## 📢 News
