@@ -3,6 +3,8 @@
 <div align="center">
 
 [![Project Page](https://img.shields.io/badge/Project%20Page-PaperGym-blue)](https://zju-real.github.io/PaperGym)
+[![arXiv](https://img.shields.io/badge/arXiv-2608.31119-b31b1b)](https://arxiv.org/abs/2608.31119)
+[![Hugging Face Paper](https://img.shields.io/badge/HF%20Paper-2608.31119-yellow?logo=huggingface&logoColor=white)](https://huggingface.co/papers/2608.31119)
 [![Hugging Face Model](https://img.shields.io/badge/Model-PaperGym--Model-orange)](https://huggingface.co/CabbageWyh/PaperGym-Model)
 [![Hugging Face Dataset](https://img.shields.io/badge/Dataset-PaperGym--20k-green)](https://huggingface.co/datasets/CabbageWyh/PaperGym-Data)
 
@@ -36,7 +38,7 @@ PaperGym couples a **data-generation** pipeline that turns each paper into a low
 
 ## 📢 News
 
-- **`2026-08-29`**: Released the PaperGym pipeline, the **PaperGym-20k** corpus, the **PaperGym-Innov / PaperGym-Design** benchmarks, and the fine-tuned models on [Hugging Face](https://huggingface.co/CabbageWyh/PaperGym-Model). *(arXiv link will be added upon release.)*
+- **`2026-08-29`**: Released the PaperGym pipeline, the **PaperGym-20k** corpus, the **PaperGym-Innov / PaperGym-Design** benchmarks, and the fine-tuned models on [Hugging Face](https://huggingface.co/CabbageWyh/PaperGym-Model). Paper: [arXiv](https://arxiv.org/abs/2608.31119) · [Hugging Face Papers](https://huggingface.co/papers/2608.31119).
 
 ## 📊 Results
 
@@ -48,7 +50,7 @@ PaperGym couples a **data-generation** pipeline that turns each paper into a low
   <img src="docs/images/leakage.png" width="600" alt="Criterion leakage: PaperGym-20k 3.73%, PaperGym-Innov 4.71%, PaperGym-Design 4.97%, HealthBench 11.90%, RubricHub Science 17.39%, ResearchQA 19.22%, ResearchPlanGen-ML 31.29%, ResearchPlanGen-ArXiv 34.10%">
 </p>
 
-See the [project page](https://zju-real.github.io/PaperGym) for the paper and complete experiments, ablations, and analysis.
+See the [paper](https://arxiv.org/abs/2608.31119) ([Hugging Face Papers](https://huggingface.co/papers/2608.31119)) and the [project page](https://zju-real.github.io/PaperGym) for complete experiments, ablations, and analysis.
 
 ## 🗂️ Repository Structure
 
@@ -138,8 +140,8 @@ If you find PaperGym useful in your research, please consider citing:
              Wenqi Zhang and Weiming Lu and Jun Xiao and Yueting Zhuang and
              Yongliang Shen},
   year    = {2026},
-  url     = {https://zju-real.github.io/PaperGym/},
-  note    = {arXiv ID to be added}
+  url     = {https://arxiv.org/abs/2608.31119},
+  note    = {arXiv:2608.31119; also on Hugging Face Papers: https://huggingface.co/papers/2608.31119}
 }
 ```
 
