@@ -134,14 +134,14 @@ Analysis scripts (blind win-rate comparison, leakage detection, entropy, stabili
 If you find PaperGym useful in your research, please consider citing:
 
 ```bibtex
-@misc{wang2026papergym,
-  title   = {PaperGym: Rubric-Centered Evolution for Research-Plan Generation},
-  author  = {Yuhan Wang and Zhengxi Lu and Yuchen Yan and Kaitao Song and
-             Wenqi Zhang and Weiming Lu and Jun Xiao and Yueting Zhuang and
-             Yongliang Shen},
-  year    = {2026},
-  url     = {https://arxiv.org/abs/2608.31119},
-  note    = {arXiv:2608.31119; also on Hugging Face Papers: https://huggingface.co/papers/2608.31119}
+@misc{wang2026papergymrubriccenteredevolutionresearchplan,
+      title={PaperGym: Rubric-Centered Evolution for Research-Plan Generation},
+      author={Yuhan Wang and Zhengxi Lu and Yuchen Yan and Kaitao Song and Wenqi Zhang and Weiming Lu and Jun Xiao and Yueting Zhuang and Yongliang Shen},
+      year={2026},
+      eprint={2608.31119},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2608.31119},
 }
 ```
 
